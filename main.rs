@@ -16,9 +16,10 @@ pub enum TokenKind {
     Symbol(String),
 }
 
-fn tokenise(source: &str) {
+fn tokenise(source: &str) -> Vec<TokenKind> {
     use TokeniseState::*;
 
+    let mut result = Vec::new();
     let mut start = 0;
     loop {
         let mut state = Start;
@@ -29,7 +30,7 @@ fn tokenise(source: &str) {
                     '(' => Some(LParen),
                     ')' => Some(RParen),
                     '0'..='9' => Some(Number),
-                    'a'..='z' => Some(Symbol),
+                    'a'..='z' => Some(TokeniseState::Symbol),
                     c if c.is_whitespace() => Some(WhiteSpace),
                     _ => None,
                 },
@@ -38,8 +39,8 @@ fn tokenise(source: &str) {
                     '0'..='9' => Some(Number),
                     _ => None,
                 },
-                Symbol => match c {
-                    'A'..='Z' | '0'..='9' => Some(Symbol),
+                TokeniseState::Symbol => match c {
+                    'A'..='Z' | '0'..='9' => Some(TokeniseState::Symbol),
                     _ => None,
                 },
                 WhiteSpace => {
@@ -59,9 +60,25 @@ fn tokenise(source: &str) {
                 break;
             }
         }
+
+        let token_str = &source[start..end];
+        start = end;
+
+        let kind = match state {
+            Start => break,
+            LParen => TokenKind::LeftBracket,
+            RParen => TokenKind::RightBracket,
+            Number => TokenKind::Symbol(token_str.parse().unwrap()),
+            Symbol => TokenKind::Symbol(token_str.into()),
+            WhiteSpace => continue,
+        };
+
+        result.push(kind);
     }
+
+    return result;
 }
 
 fn main() {
-    tokenise("alfa");
+    println!("{:?}", tokenise("alfa"));
 }
