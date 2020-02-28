@@ -8,6 +8,14 @@ enum TokeniseState {
     WhiteSpace,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum TokenKind {
+    LeftBracket,
+    RightBracket,
+    Number(i64),
+    Symbol(String),
+}
+
 fn tokenise(source: &str) {
     use TokeniseState::*;
 
