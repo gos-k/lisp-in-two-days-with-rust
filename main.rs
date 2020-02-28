@@ -78,6 +78,20 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
     return result;
 }
 
+#[derive(Debug, PartialEq)]
+pub enum Expr {
+    Symbol(TokenKind, String),
+    Number(TokenKind, i64),
+    If(TokenKind, TOkenKind, Box<Expr>, Box<Expr>, Box<Expr>, Token),
+    Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
+    Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
+}
+
+fn parse_expr(&mut self) -> Expr {
+    if let Some(token) = self.0.next() {
+    }
+}
+
 fn main() {
     println!("{:?}", tokenise("(alfa bravo)"));
 }
