@@ -40,7 +40,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
                     _ => None,
                 },
                 TokeniseState::Symbol => match c {
-                    'A'..='Z' | '0'..='9' => Some(TokeniseState::Symbol),
+                    'a'..='z' | '0'..='9' => Some(TokeniseState::Symbol),
                     _ => None,
                 },
                 WhiteSpace => {
@@ -53,7 +53,6 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
             };
 
             if let Some(next_state) = next {
-                println!("{:?}", next_state);
                 state = next_state;
                 end += c.len_utf8();
             } else {
@@ -80,5 +79,5 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
 }
 
 fn main() {
-    println!("{:?}", tokenise("alfa"));
+    println!("{:?}", tokenise("(alfa bravo)"));
 }
