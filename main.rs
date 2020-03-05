@@ -196,6 +196,22 @@ pub fn make_global_env() -> HashMap<String, Value> {
     env
 }
 
+pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult {
+    match expr {
+        Expr::Symbol(_, s) => env
+            .get(&s)
+            .cloned()
+            .ok_or_else(|| EvalError(format!("eval undefind symbol"))),
+        Expr::Number(_, n) => Ok(Value::Number(n)),
+        Expr::If(_, _, cond, then, elz, _) => Ok(if eval_with_env(*cond, env)?.is_truthy() {
+            eval_with_env(*then, env)?
+        } else {
+            eval_with_env(*elz, env)?
+        }),
+        _ => Err(EvalError(format!("eval not impl"))),
+    }
+}
+
 fn main() {
     let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
     println!("{:?}", tokens);
