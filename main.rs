@@ -154,6 +154,11 @@ where
     }
 }
 
+pub fn parse(source: &str) -> Expr {
+    let tokens = tokenise(source);
+    ParseState(tokens.into_iter().peekable()).parse_expr()
+}
+
 fn main() {
     let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
     println!("{:?}", tokens);
