@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug)]
 enum TokeniseState {
     Start,
@@ -171,6 +173,10 @@ type Callable = fn(Vec<Value>) -> EvalResult;
 pub struct EvalError(String);
 
 pub type EvalResult = Result<Value, EvalError>;
+
+fn last_or_nil(values: Vec<Value>) -> Value {
+    values.last().cloned().unwrap_or(Value::Nil)
+}
 
 fn main() {
     let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
