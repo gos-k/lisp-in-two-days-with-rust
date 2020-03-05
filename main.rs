@@ -178,6 +178,15 @@ fn last_or_nil(values: Vec<Value>) -> Value {
     values.last().cloned().unwrap_or(Value::Nil)
 }
 
+pub fn make_global_env() -> HashMap<String, Value> {
+    let mut env = HashMap::new();
+    env.insert(
+        "begin".into(),
+        Value::Callable(|values| Ok(last_or_nil(values))),
+    );
+    env
+}
+
 fn main() {
     let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
     println!("{:?}", tokens);
