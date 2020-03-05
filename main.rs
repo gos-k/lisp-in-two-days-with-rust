@@ -69,7 +69,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
             Start => break,
             LParen => TokenKind::LeftBracket,
             RParen => TokenKind::RightBracket,
-            Number => TokenKind::Symbol(token_str.parse().unwrap()),
+            Number => TokenKind::Number(token_str.parse().unwrap()),
             Symbol => TokenKind::Symbol(token_str.into()),
             WhiteSpace => continue,
         };
