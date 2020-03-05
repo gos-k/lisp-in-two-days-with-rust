@@ -179,6 +179,7 @@ impl Value {
 
 type Callable = fn(Vec<Value>) -> EvalResult;
 
+#[derive(Debug)]
 pub struct EvalError(String);
 
 pub type EvalResult = Result<Value, EvalError>;
@@ -212,9 +213,15 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
     }
 }
 
+pub fn eval(expr: Expr) -> EvalResult {
+    eval_with_env(expr, &mut make_global_env())
+}
+
 fn main() {
-    let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
-    println!("{:?}", tokens);
+    let tokens = tokenise("(if 0 0 1)");
+    //println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
     println!("{:?}", exprs);
+    let result = eval(exprs);
+    println!("{:?}", result);
 }
