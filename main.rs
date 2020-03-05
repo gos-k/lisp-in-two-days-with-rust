@@ -217,6 +217,13 @@ pub fn eval(expr: Expr) -> EvalResult {
     eval_with_env(expr, &mut make_global_env())
 }
 
+pub fn print(result: EvalResult) {
+    match result {
+        Ok(value) => println!(" ~> {:?}", value),
+        Err(error) => println!(" !! {:?}", error),
+    }
+}
+
 fn main() {
     let tokens = tokenise("(if 0 0 1)");
     //println!("{:?}", tokens);
@@ -224,4 +231,5 @@ fn main() {
     println!("{:?}", exprs);
     let result = eval(exprs);
     println!("{:?}", result);
+    print(result);
 }
