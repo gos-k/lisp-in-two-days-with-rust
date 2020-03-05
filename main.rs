@@ -168,6 +168,15 @@ pub enum Value {
     Nil,
 }
 
+impl Value {
+    fn is_truthy(&self) -> bool {
+        match *self {
+            Value::Number(n) => n != 0,
+            _ => true,
+        }
+    }
+}
+
 type Callable = fn(Vec<Value>) -> EvalResult;
 
 pub struct EvalError(String);
