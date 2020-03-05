@@ -159,6 +159,19 @@ pub fn parse(source: &str) -> Expr {
     ParseState(tokens.into_iter().peekable()).parse_expr()
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum Value {
+    Number(i64),
+    Callable(Callable),
+    Nil,
+}
+
+type Callable = fn(Vec<Value>) -> EvalResult;
+
+pub struct EvalError(String);
+
+pub type EvalResult = Result<Value, EvalError>;
+
 fn main() {
     let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
     println!("{:?}", tokens);
