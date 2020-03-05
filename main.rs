@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::io::Write;
 
 #[derive(Debug)]
 enum TokeniseState {
@@ -224,6 +225,14 @@ pub fn print(result: EvalResult) {
     }
 }
 
+pub fn read() -> Expr {
+    let mut buffer = String::new();
+    print!(" > ");
+    std::io::stdout().flush().unwrap();
+    std::io::stdin().read_line(&mut buffer).unwrap();
+    parse(&buffer)
+}
+
 fn main() {
     let tokens = tokenise("(if 0 0 1)");
     //println!("{:?}", tokens);
@@ -232,4 +241,6 @@ fn main() {
     let result = eval(exprs);
     println!("{:?}", result);
     print(result);
+    let rr = read();
+    println!("{:?}", rr);
 }
