@@ -121,6 +121,21 @@ where
         use TokenKind::*;
         match self.0.peek() {
             Some(Symbol(ref sym)) => match &sym[..] {
+                "if" => {
+                    let if_tok = self.0.next().unwrap();
+                    let cond = self.parse_expr();
+                    let if_true = self.parse_expr();
+                    let if_false = self.parse_expr();
+                    let close = self.0.next().unwrap();
+                    Expr::If(
+                        open,
+                        if_tok,
+                        Box::new(cond),
+                        Box::new(if_true),
+                        Box::new(if_false),
+                        close,
+                    )
+                }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
                     let mut args = Vec::new();
@@ -140,7 +155,7 @@ where
 }
 
 fn main() {
-    let tokens = tokenise("(alfa bravo)");
+    let tokens = tokenise("(if (alfa bravo) charlie (delta echo))");
     println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
     println!("{:?}", exprs);
