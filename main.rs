@@ -243,4 +243,9 @@ fn main() {
     print(result);
     let rr = read();
     println!("{:?}", rr);
+
+    let mut env = make_global_env();
+    loop {
+        print(eval_with_env(read(), &mut env));
+    }
 }
