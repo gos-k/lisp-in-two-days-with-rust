@@ -33,7 +33,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
                     '(' => Some(LParen),
                     ')' => Some(RParen),
                     '0'..='9' => Some(Number),
-                    'a'..='z' => Some(TokeniseState::Symbol),
+                    'a'..='z' | '+' => Some(TokeniseState::Symbol),
                     c if c.is_whitespace() => Some(WhiteSpace),
                     _ => None,
                 },
@@ -176,6 +176,13 @@ impl Value {
             _ => true,
         }
     }
+
+    fn into_num(self) -> i64 {
+        match self {
+            Value::Number(n) => n,
+            other => panic!("NaN {:?}", other),
+        }
+    }
 }
 
 type Callable = fn(Vec<Value>) -> EvalResult;
@@ -195,7 +202,18 @@ pub fn make_global_env() -> HashMap<String, Value> {
         "begin".into(),
         Value::Callable(|values| Ok(last_or_nil(values))),
     );
+    env.insert(
+        "+".into(),
+        Value::Callable(|values| Ok(Value::Number(values.iter().map(|i| i.into_num()).sum()))),
+    );
     env
+}
+
+fn to_sym(token: TokenKind) -> Result<String, EvalError> {
+    match token {
+        TokenKind::Symbol(s) => Ok(s),
+        other => Err(EvalError(format!("not symbol {:?}", other))),
+    }
 }
 
 pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult {
@@ -210,6 +228,16 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
         } else {
             eval_with_env(*elz, env)?
         }),
+        Expr::Call(_, sym, args, _) => {
+            let sym = to_sym(sym)?;
+            match env.get(&sym) {
+                Some(Value::Callable(c)) => c(args
+                    .into_iter()
+                    .map(|a| eval_with_env(a, env))
+                    .collect::<Result<Vec<_>, _>>()?),
+                _ => Err(EvalError(format!("invalid function {}", sym))),
+            }
+        }
         _ => Err(EvalError(format!("eval not impl"))),
     }
 }
@@ -234,7 +262,7 @@ pub fn read() -> Expr {
 }
 
 fn main() {
-    let tokens = tokenise("(if 0 0 1)");
+    let tokens = tokenise("(+ 2 (if 0 0 1))");
     //println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
     println!("{:?}", exprs);
