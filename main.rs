@@ -162,13 +162,25 @@ pub fn parse(source: &str) -> Expr {
     ParseState(tokens.into_iter().peekable()).parse_expr()
 }
 
-#[derive(Debug)]
-struct Parent(Child, Child);
+#[derive(Debug, Clone)]
+pub struct Parent {
+    lhs: Box<Child>,
+    rhs: Box<Child>,
+}
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, Clone)]
+pub enum Child {
+    Value(Box<Value>),
+    Parent(Box<Parent>),
+    Nil,
+}
+
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(i64),
+    Symbol(String),
     Callable(Callable),
+    Parent(Box<Parent>),
     Nil,
 }
 
@@ -207,7 +219,22 @@ pub fn make_global_env() -> HashMap<String, Value> {
     );
     env.insert(
         "+".into(),
-        Value::Callable(|values| Ok(Value::Number(values.iter().map(|i| i.into_num()).sum()))),
+        Value::Callable(|values| {
+            Ok(Value::Number(
+                values.iter().map(|i| i.clone().into_num()).sum(),
+            ))
+        }),
+    );
+    env.insert(
+        "cons".into(),
+        Value::Callable(|values| {
+            let lhs = values[0].clone();
+            let rhs = values[1].clone();
+            Ok(Value::Parent(Box::new(Parent {
+                lhs: Box::new(Child::Value(Box::new(lhs))),
+                rhs: Box::new(Child::Value(Box::new(rhs))),
+            })))
+        }),
     );
     env
 }
@@ -238,7 +265,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                     .into_iter()
                     .map(|a| eval_with_env(a, env))
                     .collect::<Result<Vec<_>, _>>()?),
-                _ => Err(EvalError(format!("invalid function {}", sym))),
+                _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
         _ => Err(EvalError(format!("eval not impl"))),
@@ -265,13 +292,15 @@ pub fn read() -> Expr {
 }
 
 fn main() {
-    let tokens = tokenise("(+ 2 (if 0 0 1))");
-    //println!("{:?}", tokens);
+    //let tokens = tokenise("(+ 2 (if 0 0 1))");
+    //let tokens = tokenise("(cons 2 (if 0 0 1))");
+    let tokens = tokenise("(cons 0 (cons 2 (cons (if 0 0 1) 0)))");
+    //let tokens = tokenise("(alfa 0 (bravo 0 (if 0 0 1))");
+    println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
     println!("{:?}", exprs);
     let result = eval(exprs);
     println!("{:?}", result);
-    print(result);
     let rr = read();
     println!("{:?}", rr);
 
