@@ -211,6 +211,14 @@ fn last_or_nil(values: Vec<Value>) -> Value {
     values.last().cloned().unwrap_or(Value::Nil)
 }
 
+fn child_to_value(child: Child) -> Value {
+    match child {
+        Child::Value(box_value) => *box_value,
+        Child::Parent(box_parent) => Value::Parent(box_parent),
+        Child::Nil => Value::Nil,
+    }
+}
+
 pub fn make_global_env() -> HashMap<String, Value> {
     let mut env = HashMap::new();
     env.insert(
@@ -243,11 +251,7 @@ pub fn make_global_env() -> HashMap<String, Value> {
             match list {
                 Value::Parent(parent) => {
                     let child = *parent.lhs;
-                    match child {
-                        Child::Value(box_value) => Ok(*box_value),
-                        Child::Parent(box_parent) => Ok(Value::Parent(box_parent)),
-                        Child::Nil => Ok(Value::Nil),
-                    }
+                    Ok(child_to_value(child))
                 }
                 other => Err(EvalError(format!("car {:?}", other))),
             }
@@ -260,11 +264,7 @@ pub fn make_global_env() -> HashMap<String, Value> {
             match list {
                 Value::Parent(parent) => {
                     let child = *parent.rhs;
-                    match child {
-                        Child::Value(box_value) => Ok(*box_value),
-                        Child::Parent(box_parent) => Ok(Value::Parent(box_parent)),
-                        Child::Nil => Ok(Value::Nil),
-                    }
+                    Ok(child_to_value(child))
                 }
                 other => Err(EvalError(format!("car {:?}", other))),
             }
@@ -336,11 +336,10 @@ fn main() {
     println!("{:?}", exprs);
     let result = eval(exprs);
     println!("{:?}", result);
-    let rr = read();
-    println!("{:?}", rr);
+    //let rr = read();
+    //println!("{:?}", rr);
 
-    let mut env = make_global_env();
     loop {
-        print(eval_with_env(read(), &mut env));
+        print(eval(read()));
     }
 }
