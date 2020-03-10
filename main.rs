@@ -236,6 +236,23 @@ pub fn make_global_env() -> HashMap<String, Value> {
             })))
         }),
     );
+    env.insert(
+        "car".into(),
+        Value::Callable(|values| {
+            let list = values[0].clone();
+            match list {
+                Value::Parent(parent) => {
+                    let child = *parent.lhs;
+                    match child {
+                        Child::Value(box_value) => Ok(*box_value),
+                        Child::Parent(box_parent) => Ok(Value::Parent(box_parent)),
+                        Child::Nil => Ok(Value::Nil),
+                    }
+                }
+                other => Err(EvalError(format!("car {:?}", other))),
+            }
+        }),
+    );
     env
 }
 
@@ -294,7 +311,8 @@ pub fn read() -> Expr {
 fn main() {
     //let tokens = tokenise("(+ 2 (if 0 0 1))");
     //let tokens = tokenise("(cons 2 (if 0 0 1))");
-    let tokens = tokenise("(cons 0 (cons 2 (cons (if 0 0 1) 0)))");
+    //let tokens = tokenise("(cons 0 (cons 2 (cons (if 0 0 1) 0)))");
+    let tokens = tokenise("(car (cons 0 (cons 2 (cons (if 0 0 1) 0))))");
     //let tokens = tokenise("(alfa 0 (bravo 0 (if 0 0 1))");
     println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
