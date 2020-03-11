@@ -223,6 +223,7 @@ fn child_to_value(child: Child) -> Value {
 pub fn make_global_env() -> HashMap<String, Value> {
     let mut env = HashMap::new();
     env.insert("t".into(), Value::T);
+    env.insert("nil".into(), Value::Nil);
     env.insert(
         "begin".into(),
         Value::Callable(|values| Ok(last_or_nil(values))),
