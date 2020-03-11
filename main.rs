@@ -181,13 +181,14 @@ pub enum Value {
     Symbol(String),
     Callable(Callable),
     Parent(Box<Parent>),
+    T,
     Nil,
 }
 
 impl Value {
     fn is_truthy(&self) -> bool {
         match *self {
-            Value::Number(n) => n != 0,
+            Value::Nil => false,
             _ => true,
         }
     }
@@ -221,6 +222,7 @@ fn child_to_value(child: Child) -> Value {
 
 pub fn make_global_env() -> HashMap<String, Value> {
     let mut env = HashMap::new();
+    env.insert("t".into(), Value::T);
     env.insert(
         "begin".into(),
         Value::Callable(|values| Ok(last_or_nil(values))),
