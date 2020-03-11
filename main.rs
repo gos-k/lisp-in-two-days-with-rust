@@ -237,6 +237,13 @@ pub fn make_global_env() -> HashMap<String, Value> {
         }),
     );
     env.insert(
+        "atom".into(),
+        Value::Callable(|values| match values[0].clone() {
+            Value::Number(_) | Value::Symbol(_) => Ok(Value::T),
+            _ => Ok(Value::Nil),
+        }),
+    );
+    env.insert(
         "cons".into(),
         Value::Callable(|values| {
             let lhs = values[0].clone();
@@ -332,7 +339,7 @@ fn main() {
     //let tokens = tokenise("(+ 2 (if 0 0 1))");
     //let tokens = tokenise("(cons 2 (if 0 0 1))");
     //let tokens = tokenise("(cons 0 (cons 2 (cons (if 0 0 1) 0)))");
-    let tokens = tokenise("(cdr (cons 0 (cons 2 (cons (if 0 0 1) 0))))");
+    let tokens = tokenise("(cdr (cons 0 (cons 2 (cons (if (atom 0) 0 1) 0))))");
     //let tokens = tokenise("(alfa 0 (bravo 0 (if 0 0 1))");
     println!("{:?}", tokens);
     let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
