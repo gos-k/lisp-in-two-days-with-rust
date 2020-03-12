@@ -244,6 +244,30 @@ pub fn make_global_env() -> HashMap<String, Value> {
         }),
     );
     env.insert(
+        "eq".into(),
+        Value::Callable(|values| match values[0].clone() {
+            Value::Number(lhs) => {
+                if let Value::Number(rhs) = values[1] {
+                    Ok(if lhs == rhs { Value::T } else { Value::Nil })
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::Symbol(lhs) => {
+                if let Value::Symbol(rhs) = values[1].clone() {
+                    Ok(if lhs == rhs { Value::T } else { Value::Nil })
+                } else {
+                    Ok(Value::Nil)
+                }
+            }
+            Value::T => match values[1] {
+                Value::T => Ok(Value::T),
+                _ => Ok(Value::Nil),
+            },
+            _ => Ok(Value::Nil),
+        }),
+    );
+    env.insert(
         "cons".into(),
         Value::Callable(|values| {
             let lhs = values[0].clone();
