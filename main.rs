@@ -183,8 +183,8 @@ pub struct Parent {
 
 #[derive(Debug, Clone)]
 pub enum Child {
-    Value(Box<Value>),
-    Parent(Box<Parent>),
+    Value(Value),
+    Parent(Parent),
     Nil,
 }
 
@@ -227,8 +227,8 @@ fn last_or_nil(values: Vec<Value>) -> Value {
 
 fn child_to_value(child: Child) -> Value {
     match child {
-        Child::Value(box_value) => *box_value,
-        Child::Parent(box_parent) => Value::Parent(*box_parent),
+        Child::Value(value) => value,
+        Child::Parent(parent) => Value::Parent(parent),
         Child::Nil => Value::Nil,
     }
 }
@@ -286,8 +286,8 @@ pub fn make_global_env() -> HashMap<String, Value> {
             let lhs = values[0].clone();
             let rhs = values[1].clone();
             Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(Box::new(lhs))),
-                rhs: Box::new(Child::Value(Box::new(rhs))),
+                lhs: Box::new(Child::Value(lhs)),
+                rhs: Box::new(Child::Value(rhs)),
             }))
         }),
     );
@@ -341,8 +341,8 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 _ => panic!("no symbol"),
             };
             Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
-                rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
+                lhs: Box::new(Child::Value(Value::Symbol(sym.to_string()))),
+                rhs: Box::new(Child::Value(args[0].clone())),
             }))
         }
         Expr::Quote(_, sym, args, _) => {
@@ -355,8 +355,8 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 _ => panic!("no symbol"),
             };
             Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
-                rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
+                lhs: Box::new(Child::Value(Value::Symbol(sym.to_string()))),
+                rhs: Box::new(Child::Value(args[0].clone())),
             }))
         }
         _ => Err(EvalError(format!("eval not impl"))),
