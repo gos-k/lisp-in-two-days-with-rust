@@ -11,7 +11,7 @@ enum TokeniseState {
     WhiteSpace,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenKind {
     LeftBracket,
     RightBracket,
@@ -81,7 +81,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
     return result;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Symbol(TokenKind, String),
     Number(TokenKind, i64),
@@ -95,6 +95,7 @@ pub enum Expr {
     ),
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
+    Quote(TokenKind, TokenKind, Vec<Expr>, TokenKind),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -138,6 +139,18 @@ where
                         Box::new(if_false),
                         close,
                     )
+                }
+                "quote" => {
+                    let sym_tok = self.0.next().unwrap();
+                    let mut args = Vec::new();
+                    while let Some(token_kind) = self.0.peek() {
+                        if token_kind == &RightBracket {
+                            break;
+                        }
+                        args.push(self.parse_expr());
+                    }
+                    let close = self.0.next().unwrap();
+                    Expr::Quote(open, sym_tok, args, close)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -314,34 +327,63 @@ fn to_sym(token: TokenKind) -> Result<String, EvalError> {
     }
 }
 
-pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult {
+fn eval_with_quote(expr: Expr) -> EvalResult {
+    match expr {
+        Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
+        Expr::Number(_, n) => Ok(Value::Number(n)),
+        _ => Err(EvalError(format!("eval not impl"))),
+    }
+}
+
+pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => env
             .get(&s)
             .cloned()
             .ok_or_else(|| EvalError(format!("eval undefind symbol"))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
-        Expr::If(_, _, cond, then, elz, _) => Ok(if eval_with_env(*cond, env)?.is_truthy() {
-            eval_with_env(*then, env)?
-        } else {
-            eval_with_env(*elz, env)?
-        }),
+        Expr::If(_, _, cond, then, elz, _) => {
+            Ok(if eval_with_env(*cond, env, quote)?.is_truthy() {
+                eval_with_env(*then, env, quote)?
+            } else {
+                eval_with_env(*elz, env, quote)?
+            })
+        }
         Expr::Call(_, sym, args, _) => {
             let sym = to_sym(sym)?;
             match env.get(&sym) {
                 Some(Value::Callable(c)) => c(args
                     .into_iter()
-                    .map(|a| eval_with_env(a, env))
+                    .map(|a| eval_with_env(a, env, quote))
                     .collect::<Result<Vec<_>, _>>()?),
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
+        Expr::Quote(_, _, args, _) => match &args[0] {
+            Expr::Number(_, n) => Ok(Value::Number(*n)),
+            Expr::Symbol(_, s) => Ok(Value::Symbol(s.to_string())),
+            Expr::Call(_, sym, args, _) => {
+                let args = args
+                    .into_iter()
+                    .map(|a| eval_with_quote(a.clone()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                let sym = match sym {
+                    TokenKind::Symbol(sym) => sym,
+                    _ => panic!("no symbol"),
+                };
+                Ok(Value::Parent(Box::new(Parent {
+                    lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
+                    rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
+                })))
+            }
+            _ => Err(EvalError(format!("not impl"))),
+        },
         _ => Err(EvalError(format!("eval not impl"))),
     }
 }
 
 pub fn eval(expr: Expr) -> EvalResult {
-    eval_with_env(expr, &mut make_global_env())
+    eval_with_env(expr, &mut make_global_env(), false)
 }
 
 pub fn print(result: EvalResult) {
