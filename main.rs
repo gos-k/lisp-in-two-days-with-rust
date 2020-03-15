@@ -331,6 +331,34 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
         Expr::Number(_, n) => Ok(Value::Number(n)),
+        Expr::Call(_, sym, args, _) => {
+            let args = args
+                .into_iter()
+                .map(|a| eval_with_quote(a.clone()))
+                .collect::<Result<Vec<_>, _>>()?;
+            let sym = match sym {
+                TokenKind::Symbol(sym) => sym,
+                _ => panic!("no symbol"),
+            };
+            Ok(Value::Parent(Box::new(Parent {
+                lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
+                rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
+            })))
+        }
+        Expr::Quote(_, sym, args, _) => {
+            let args = args
+                .into_iter()
+                .map(|a| eval_with_quote(a.clone()))
+                .collect::<Result<Vec<_>, _>>()?;
+            let sym = match sym {
+                TokenKind::Symbol(sym) => sym,
+                _ => panic!("no symbol"),
+            };
+            Ok(Value::Parent(Box::new(Parent {
+                lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
+                rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
+            })))
+        }
         _ => Err(EvalError(format!("eval not impl"))),
     }
 }
@@ -359,25 +387,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) 
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
-        Expr::Quote(_, _, args, _) => match &args[0] {
-            Expr::Number(_, n) => Ok(Value::Number(*n)),
-            Expr::Symbol(_, s) => Ok(Value::Symbol(s.to_string())),
-            Expr::Call(_, sym, args, _) => {
-                let args = args
-                    .into_iter()
-                    .map(|a| eval_with_quote(a.clone()))
-                    .collect::<Result<Vec<_>, _>>()?;
-                let sym = match sym {
-                    TokenKind::Symbol(sym) => sym,
-                    _ => panic!("no symbol"),
-                };
-                Ok(Value::Parent(Box::new(Parent {
-                    lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
-                    rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
-                })))
-            }
-            _ => Err(EvalError(format!("not impl"))),
-        },
+        Expr::Quote(_, _, args, _) => eval_with_quote(args[0].clone()),
         _ => Err(EvalError(format!("eval not impl"))),
     }
 }
