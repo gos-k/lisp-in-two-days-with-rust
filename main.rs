@@ -193,7 +193,7 @@ pub enum Value {
     Number(i64),
     Symbol(String),
     Callable(Callable),
-    Parent(Box<Parent>),
+    Parent(Parent),
     T,
     Nil,
 }
@@ -228,7 +228,7 @@ fn last_or_nil(values: Vec<Value>) -> Value {
 fn child_to_value(child: Child) -> Value {
     match child {
         Child::Value(box_value) => *box_value,
-        Child::Parent(box_parent) => Value::Parent(box_parent),
+        Child::Parent(box_parent) => Value::Parent(*box_parent),
         Child::Nil => Value::Nil,
     }
 }
@@ -285,10 +285,10 @@ pub fn make_global_env() -> HashMap<String, Value> {
         Value::Callable(|values| {
             let lhs = values[0].clone();
             let rhs = values[1].clone();
-            Ok(Value::Parent(Box::new(Parent {
+            Ok(Value::Parent(Parent {
                 lhs: Box::new(Child::Value(Box::new(lhs))),
                 rhs: Box::new(Child::Value(Box::new(rhs))),
-            })))
+            }))
         }),
     );
     env.insert(
@@ -340,10 +340,10 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 TokenKind::Symbol(sym) => sym,
                 _ => panic!("no symbol"),
             };
-            Ok(Value::Parent(Box::new(Parent {
+            Ok(Value::Parent(Parent {
                 lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
                 rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
-            })))
+            }))
         }
         Expr::Quote(_, sym, args, _) => {
             let args = args
@@ -354,10 +354,10 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 TokenKind::Symbol(sym) => sym,
                 _ => panic!("no symbol"),
             };
-            Ok(Value::Parent(Box::new(Parent {
+            Ok(Value::Parent(Parent {
                 lhs: Box::new(Child::Value(Box::new(Value::Symbol(sym.to_string())))),
                 rhs: Box::new(Child::Value(Box::new(args[0].clone()))),
-            })))
+            }))
         }
         _ => Err(EvalError(format!("eval not impl"))),
     }
