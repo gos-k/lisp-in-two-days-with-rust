@@ -225,6 +225,13 @@ fn last_or_nil(values: Vec<Value>) -> Value {
     values.last().cloned().unwrap_or(Value::Nil)
 }
 
+fn cons(lhs: Value, rhs: Value) -> Value {
+    Value::Parent(Parent {
+        lhs: Box::new(Child::Value(lhs)),
+        rhs: Box::new(Child::Value(rhs)),
+    })
+}
+
 fn child_to_value(child: Child) -> Value {
     match child {
         Child::Value(value) => value,
@@ -285,10 +292,7 @@ pub fn make_global_env() -> HashMap<String, Value> {
         Value::Callable(|values| {
             let lhs = values[0].clone();
             let rhs = values[1].clone();
-            Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(lhs)),
-                rhs: Box::new(Child::Value(rhs)),
-            }))
+            Ok(cons(lhs, rhs))
         }),
     );
     env.insert(
@@ -337,10 +341,7 @@ fn eval_with_list(mut values: Vec<Value>) -> Value {
     } else {
         eval_with_list(values)
     };
-    Value::Parent(Parent {
-        lhs: Box::new(Child::Value(lhs)),
-        rhs: Box::new(Child::Value(rhs)),
-    })
+    cons(lhs, rhs)
 }
 
 fn eval_with_quote(expr: Expr) -> EvalResult {
@@ -357,10 +358,7 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 _ => panic!("no symbol"),
             };
             args.reverse();
-            Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(Value::Symbol(sym.to_string()))),
-                rhs: Box::new(Child::Value(eval_with_list(args))),
-            }))
+            Ok(cons(Value::Symbol(sym.to_string()), eval_with_list(args)))
         }
         Expr::Quote(_, sym, args, _) => {
             let args = args
@@ -371,10 +369,7 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 TokenKind::Symbol(sym) => sym,
                 _ => panic!("no symbol"),
             };
-            Ok(Value::Parent(Parent {
-                lhs: Box::new(Child::Value(Value::Symbol(sym.to_string()))),
-                rhs: Box::new(Child::Value(args[0].clone())),
-            }))
+            Ok(cons(Value::Symbol(sym.to_string()), args[0].clone()))
         }
         _ => Err(EvalError(format!("eval not impl"))),
     }
