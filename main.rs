@@ -327,12 +327,28 @@ fn to_sym(token: TokenKind) -> Result<String, EvalError> {
     }
 }
 
+fn eval_with_list(mut values: Vec<Value>) -> Value {
+    let lhs = match values.pop() {
+        Some(value) => value,
+        None => panic!("no value"),
+    };
+    let rhs = if values.len() == 0 {
+        Value::Nil
+    } else {
+        eval_with_list(values)
+    };
+    Value::Parent(Parent {
+        lhs: Box::new(Child::Value(lhs)),
+        rhs: Box::new(Child::Value(rhs)),
+    })
+}
+
 fn eval_with_quote(expr: Expr) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
         Expr::Number(_, n) => Ok(Value::Number(n)),
         Expr::Call(_, sym, args, _) => {
-            let args = args
+            let mut args = args
                 .into_iter()
                 .map(|a| eval_with_quote(a.clone()))
                 .collect::<Result<Vec<_>, _>>()?;
@@ -340,9 +356,10 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 TokenKind::Symbol(sym) => sym,
                 _ => panic!("no symbol"),
             };
+            args.reverse();
             Ok(Value::Parent(Parent {
                 lhs: Box::new(Child::Value(Value::Symbol(sym.to_string()))),
-                rhs: Box::new(Child::Value(args[0].clone())),
+                rhs: Box::new(Child::Value(eval_with_list(args))),
             }))
         }
         Expr::Quote(_, sym, args, _) => {
