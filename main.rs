@@ -390,22 +390,20 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
     }
 }
 
-pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) -> EvalResult {
+pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => env
             .get(&s)
             .cloned()
             .ok_or_else(|| EvalError(format!("eval undefind symbol"))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
-        Expr::If(_, _, cond, then, elz, _) => {
-            Ok(if eval_with_env(*cond, env, quote)?.is_truthy() {
-                eval_with_env(*then, env, quote)?
-            } else {
-                eval_with_env(*elz, env, quote)?
-            })
-        }
+        Expr::If(_, _, cond, then, elz, _) => Ok(if eval_with_env(*cond, env)?.is_truthy() {
+            eval_with_env(*then, env)?
+        } else {
+            eval_with_env(*elz, env)?
+        }),
         Expr::Define(_, _, sym, value, _) => {
-            let value = eval_with_env(*value, env, quote)?;
+            let value = eval_with_env(*value, env)?;
             let sym = to_sym(sym)?;
             env.insert(sym, value.clone());
             Ok(value)
@@ -415,7 +413,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) 
             match env.get(&sym) {
                 Some(Value::Callable(c)) => c(args
                     .into_iter()
-                    .map(|a| eval_with_env(a, env, quote))
+                    .map(|a| eval_with_env(a, env))
                     .collect::<Result<Vec<_>, _>>()?),
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
@@ -425,7 +423,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) 
 }
 
 pub fn eval(expr: Expr) -> EvalResult {
-    eval_with_env(expr, &mut make_global_env(), false)
+    eval_with_env(expr, &mut make_global_env())
 }
 
 pub fn print(result: EvalResult) {
@@ -459,6 +457,6 @@ fn main() {
 
     let mut env = make_global_env();
     loop {
-        print(eval_with_env(read(), &mut env, false));
+        print(eval_with_env(read(), &mut env));
     }
 }
