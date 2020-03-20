@@ -140,6 +140,13 @@ where
                         close,
                     )
                 }
+                "define" => {
+                    let def_tok = self.0.next().unwrap();
+                    let sym_tok = self.0.next().unwrap();
+                    let value = self.parse_expr();
+                    let close = self.0.next().unwrap();
+                    Expr::Define(open, def_tok, sym_tok, Box::new(value), close)
+                }
                 "quote" => {
                     let sym_tok = self.0.next().unwrap();
                     let mut args = Vec::new();
@@ -397,6 +404,12 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) 
                 eval_with_env(*elz, env, quote)?
             })
         }
+        Expr::Define(_, _, sym, value, _) => {
+            let value = eval_with_env(*value, env, quote)?;
+            let sym = to_sym(sym)?;
+            env.insert(sym, value.clone());
+            Ok(value)
+        }
         Expr::Call(_, sym, args, _) => {
             let sym = to_sym(sym)?;
             match env.get(&sym) {
@@ -408,7 +421,6 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>, quote: bool) 
             }
         }
         Expr::Quote(_, _, args, _) => eval_with_quote(args[0].clone()),
-        _ => Err(EvalError(format!("eval not impl"))),
     }
 }
 
