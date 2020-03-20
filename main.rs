@@ -33,7 +33,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
                     '(' => Some(LParen),
                     ')' => Some(RParen),
                     '0'..='9' => Some(Number),
-                    'a'..='z' | '+' => Some(TokeniseState::Symbol),
+                    'a'..='z' | '+' | '*' => Some(TokeniseState::Symbol),
                     c if c.is_whitespace() => Some(WhiteSpace),
                     _ => None,
                 },
@@ -43,7 +43,7 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
                     _ => None,
                 },
                 TokeniseState::Symbol => match c {
-                    'a'..='z' | '0'..='9' => Some(TokeniseState::Symbol),
+                    'a'..='z' | '+' | '*' | '0'..='9' => Some(TokeniseState::Symbol),
                     _ => None,
                 },
                 WhiteSpace => {
@@ -253,6 +253,14 @@ pub fn make_global_env() -> HashMap<String, Value> {
         Value::Callable(|values| {
             Ok(Value::Number(
                 values.iter().map(|i| i.clone().into_num()).sum(),
+            ))
+        }),
+    );
+    env.insert(
+        "*".into(),
+        Value::Callable(|values| {
+            Ok(Value::Number(
+                values.iter().fold(1, |mul, i| mul * i.clone().into_num()),
             ))
         }),
     );
