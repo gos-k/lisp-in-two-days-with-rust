@@ -363,6 +363,15 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
         Expr::Number(_, n) => Ok(Value::Number(n)),
+        Expr::Define(_, def, sym, value, _) => {
+            let def = to_sym(def)?;
+            let sym = to_sym(sym)?;
+            let value = eval_with_quote(*value)?;
+            Ok(cons(
+                Value::Symbol(def.to_string()),
+                cons(Value::Symbol(sym.to_string()), value),
+            ))
+        }
         Expr::Call(_, sym, args, _) => {
             let mut args = args
                 .into_iter()
