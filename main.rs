@@ -95,7 +95,7 @@ pub enum Expr {
     ),
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
-    Quote(TokenKind, TokenKind, Vec<Expr>, TokenKind),
+    Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -149,15 +149,9 @@ where
                 }
                 "quote" => {
                     let sym_tok = self.0.next().unwrap();
-                    let mut args = Vec::new();
-                    while let Some(token_kind) = self.0.peek() {
-                        if token_kind == &RightBracket {
-                            break;
-                        }
-                        args.push(self.parse_expr());
-                    }
+                    let object = self.parse_expr();
                     let close = self.0.next().unwrap();
-                    Expr::Quote(open, sym_tok, args, close)
+                    Expr::Quote(open, sym_tok, Box::new(object), close)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -381,16 +375,10 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
             args.reverse();
             Ok(cons(Value::Symbol(sym.to_string()), eval_with_list(args)))
         }
-        Expr::Quote(_, sym, args, _) => {
-            let args = args
-                .into_iter()
-                .map(|a| eval_with_quote(a.clone()))
-                .collect::<Result<Vec<_>, _>>()?;
-            let sym = match sym {
-                TokenKind::Symbol(sym) => sym,
-                _ => panic!("no symbol"),
-            };
-            Ok(cons(Value::Symbol(sym.to_string()), args[0].clone()))
+        Expr::Quote(_, quote, value, _) => {
+            let quote = to_sym(quote)?;
+            let value = eval_with_quote(*value)?;
+            Ok(cons(Value::Symbol(quote.to_string()), value))
         }
         _ => Err(EvalError(format!("eval not impl"))),
     }
@@ -424,7 +412,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
-        Expr::Quote(_, _, args, _) => eval_with_quote(args[0].clone()),
+        Expr::Quote(_, _, value, _) => eval_with_quote(*value),
     }
 }
 
