@@ -391,11 +391,10 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             .cloned()
             .ok_or_else(|| EvalError(format!("eval undefind symbol"))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
-        Expr::If(_, _, cond, then, elz, _) => Ok(if eval_with_env(*cond, env)?.is_truthy() {
-            eval_with_env(*then, env)?
-        } else {
-            eval_with_env(*elz, env)?
-        }),
+        Expr::If(_, _, cond, then, elz, _) => {
+            let result = eval_with_env(*cond, env)?.is_truthy();
+            Ok(eval_with_env(if result { *then } else { *elz }, env)?)
+        }
         Expr::Define(_, _, sym, value, _) => {
             let value = eval_with_env(*value, env)?;
             let sym = to_sym(sym)?;
