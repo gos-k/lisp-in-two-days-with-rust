@@ -373,14 +373,11 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
             ))
         }
         Expr::Call(_, sym, args, _) => {
+            let sym = to_sym(sym)?;
             let mut args = args
                 .into_iter()
                 .map(|a| eval_with_quote(a.clone()))
                 .collect::<Result<Vec<_>, _>>()?;
-            let sym = match sym {
-                TokenKind::Symbol(sym) => sym,
-                _ => panic!("no symbol"),
-            };
             args.reverse();
             Ok(cons(Value::Symbol(sym.to_string()), eval_with_list(args)))
         }
