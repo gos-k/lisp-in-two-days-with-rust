@@ -96,6 +96,7 @@ pub enum Expr {
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
+    Lambda(TokenKind, TokenKind, Box<Expr>, Box<Expr>, TokenKind),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -412,6 +413,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             }
         }
         Expr::Quote(_, _, value, _) => eval_with_quote(*value),
+        Expr::Lambda(_, _, _, _, _) => panic!("lambda not impl"),
     }
 }
 
