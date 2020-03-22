@@ -81,6 +81,45 @@ fn tokenise(source: &str) -> Vec<TokenKind> {
     return result;
 }
 
+#[test]
+fn test_tokenise() {
+    use TokenKind::*;
+
+    assert_eq!(tokenise("0"), [Number(0)]);
+    assert_eq!(tokenise("test"), [Symbol("test".to_string())]);
+    assert_eq!(
+        tokenise("(test 0)"),
+        [
+            LeftBracket,
+            Symbol("test".to_string()),
+            Number(0),
+            RightBracket,
+        ]
+    );
+    assert_eq!(
+        tokenise("(cons 0 (cons (cons 1 nil) (cons 2 nil)))"),
+        [
+            LeftBracket,
+            Symbol("cons".to_string()),
+            Number(0),
+            LeftBracket,
+            Symbol("cons".to_string()),
+            LeftBracket,
+            Symbol("cons".to_string()),
+            Number(1),
+            Symbol("nil".to_string()),
+            RightBracket,
+            LeftBracket,
+            Symbol("cons".to_string()),
+            Number(2),
+            Symbol("nil".to_string()),
+            RightBracket,
+            RightBracket,
+            RightBracket,
+        ]
+    );
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Symbol(TokenKind, String),
@@ -444,19 +483,6 @@ pub fn read() -> Expr {
 }
 
 fn main() {
-    //let tokens = tokenise("(+ 2 (if 0 0 1))");
-    //let tokens = tokenise("(cons 2 (if 0 0 1))");
-    //let tokens = tokenise("(cons 0 (cons 2 (cons (if 0 0 1) 0)))");
-    let tokens = tokenise("(cdr (cons 0 (cons 2 (cons (if (atom 0) 0 1) 0))))");
-    //let tokens = tokenise("(alfa 0 (bravo 0 (if 0 0 1))");
-    println!("{:?}", tokens);
-    let exprs = ParseState(tokens.into_iter().peekable()).parse_expr();
-    println!("{:?}", exprs);
-    let result = eval(exprs);
-    println!("{:?}", result);
-    //let rr = read();
-    //println!("{:?}", rr);
-
     let mut env = make_global_env();
     loop {
         print(eval_with_env(read(), &mut env));
