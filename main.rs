@@ -154,6 +154,13 @@ where
                     let close = self.0.next().unwrap();
                     Expr::Quote(open, sym_tok, Box::new(object), close)
                 }
+                "lambda" => {
+                    let lam_tok = self.0.next().unwrap();
+                    let arg = self.parse_expr();
+                    let body = self.parse_expr();
+                    let close = self.0.next().unwrap();
+                    Expr::Lambda(open, lam_tok, Box::new(arg), Box::new(body), close)
+                }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
                     let mut args = Vec::new();
