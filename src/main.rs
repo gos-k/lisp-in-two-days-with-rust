@@ -218,8 +218,7 @@ where
     }
 }
 
-pub fn parse(source: &str) -> Expr {
-    let tokens = tokenise(source);
+pub fn parse(tokens: Vec<TokenKind>) -> Expr {
     ParseState(tokens.into_iter().peekable()).parse_expr()
 }
 
@@ -479,7 +478,8 @@ pub fn read() -> Expr {
     print!(" > ");
     std::io::stdout().flush().unwrap();
     std::io::stdin().read_line(&mut buffer).unwrap();
-    parse(&buffer)
+    let tokens = tokenise(&buffer);
+    parse(tokens)
 }
 
 fn main() {
