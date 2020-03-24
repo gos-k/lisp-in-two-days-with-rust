@@ -311,20 +311,20 @@ fn test_parse() {
     );
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Parent {
     lhs: Box<Child>,
     rhs: Box<Child>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Child {
     Value(Value),
     Parent(Parent),
     Nil,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Number(i64),
     Symbol(String),
@@ -524,7 +524,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
         Expr::Symbol(_, s) => env
             .get(&s)
             .cloned()
-            .ok_or_else(|| EvalError(format!("eval undefind symbol"))),
+            .ok_or_else(|| EvalError(format!("eval undefind symbol {}", s))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
         Expr::If(_, _, cond, then, elz, _) => {
             let result = eval_with_env(*cond, env)?.is_truthy();
@@ -553,6 +553,43 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
 
 pub fn eval(expr: Expr) -> EvalResult {
     eval_with_env(expr, &mut make_global_env())
+}
+
+#[test]
+fn test_eval() {
+    use TokenKind::*;
+
+    assert_eq!(eval(Expr::Number(Number(0), 0)).unwrap(), Value::Number(0));
+    assert_eq!(
+        eval(Expr::Symbol(Symbol("t".to_string()), "t".to_string())).unwrap(),
+        Value::T
+    );
+    assert_eq!(
+        eval(Expr::Symbol(Symbol("nil".to_string()), "nil".to_string())).unwrap(),
+        Value::Nil
+    );
+    assert_eq!(
+        eval(Expr::If(
+            LeftBracket,
+            Symbol("if".to_string()),
+            Box::new(Expr::Symbol(Symbol("t".to_string()), "t".to_string())),
+            Box::new(Expr::Number(Number(1), 1)),
+            Box::new(Expr::Number(Number(2), 2)),
+            RightBracket,
+        ))
+        .unwrap(),
+        Value::Number(1)
+    );
+    assert_eq!(
+        eval(Expr::Quote(
+            LeftBracket,
+            Symbol("quote".to_string()),
+            Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+            RightBracket,
+        ))
+        .unwrap(),
+        Value::Symbol("test".to_string())
+    );
 }
 
 pub fn print(result: EvalResult) {
