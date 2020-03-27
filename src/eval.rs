@@ -147,10 +147,7 @@ fn to_sym(token: TokenKind) -> Result<String, EvalError> {
 }
 
 fn eval_with_list(mut values: Vec<Value>) -> Value {
-    let lhs = match values.pop() {
-        Some(value) => value,
-        None => panic!("no value"),
-    };
+    let lhs = values.pop().unwrap();
     let rhs = if values.len() == 0 {
         Value::Nil
     } else {
