@@ -5,15 +5,8 @@ use super::token::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parent {
-    lhs: Box<Child>,
-    rhs: Box<Child>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Child {
-    Value(Value),
-    Parent(Parent),
-    Nil,
+    lhs: Box<Value>,
+    rhs: Box<Value>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -55,17 +48,9 @@ fn last_or_nil(values: Vec<Value>) -> Value {
 
 fn cons(lhs: Value, rhs: Value) -> Value {
     Value::Parent(Parent {
-        lhs: Box::new(Child::Value(lhs)),
-        rhs: Box::new(Child::Value(rhs)),
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
     })
-}
-
-fn child_to_value(child: Child) -> Value {
-    match child {
-        Child::Value(value) => value,
-        Child::Parent(parent) => Value::Parent(parent),
-        Child::Nil => Value::Nil,
-    }
 }
 
 pub fn make_global_env() -> HashMap<String, Value> {
@@ -136,10 +121,7 @@ pub fn make_global_env() -> HashMap<String, Value> {
         Value::Callable(|values| {
             let list = values[0].clone();
             match list {
-                Value::Parent(parent) => {
-                    let child = *parent.lhs;
-                    Ok(child_to_value(child))
-                }
+                Value::Parent(parent) => Ok(*parent.lhs),
                 other => Err(EvalError(format!("car {:?}", other))),
             }
         }),
@@ -149,10 +131,7 @@ pub fn make_global_env() -> HashMap<String, Value> {
         Value::Callable(|values| {
             let list = values[0].clone();
             match list {
-                Value::Parent(parent) => {
-                    let child = *parent.rhs;
-                    Ok(child_to_value(child))
-                }
+                Value::Parent(parent) => Ok(*parent.rhs),
                 other => Err(EvalError(format!("car {:?}", other))),
             }
         }),
