@@ -1,9 +1,11 @@
 use std::io::Write;
 
+mod env;
 mod eval;
 mod parse;
 mod token;
 
+use env::*;
 use eval::*;
 use parse::*;
 use token::*;
