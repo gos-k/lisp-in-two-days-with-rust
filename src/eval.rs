@@ -95,8 +95,8 @@ pub fn make_global_env() -> HashMap<String, Value> {
                 }
             }
             Value::Symbol(lhs) => {
-                if let Value::Symbol(rhs) = values[1].clone() {
-                    Ok(if lhs == rhs { Value::T } else { Value::Nil })
+                if let Value::Symbol(rhs) = &values[1] {
+                    Ok(if lhs == *rhs { Value::T } else { Value::Nil })
                 } else {
                     Ok(Value::Nil)
                 }
