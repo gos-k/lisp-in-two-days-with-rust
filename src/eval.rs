@@ -118,12 +118,9 @@ pub fn make_global_env() -> HashMap<String, Value> {
     );
     env.insert(
         "car".into(),
-        Value::Callable(|values| {
-            let list = values[0].clone();
-            match list {
-                Value::Parent(parent) => Ok(*parent.lhs),
-                other => Err(EvalError(format!("car {:?}", other))),
-            }
+        Value::Callable(|values| match &values[0] {
+            Value::Parent(parent) => Ok(*parent.lhs.clone()),
+            other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
     env.insert(
