@@ -223,6 +223,24 @@ mod tests {
                 LeftBracket,
                 Symbol("lambda".to_string()),
                 LeftBracket,
+                RightBracket,
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Lambda(
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                vec![],
+                vec![Expr::Number(Number(0), 0)],
+                RightBracket
+            )
+        );
+
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                LeftBracket,
                 Symbol("arg".to_string()),
                 RightBracket,
                 Number(0),
