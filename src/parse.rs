@@ -68,6 +68,18 @@ where
         }
     }
 
+    fn parse_symbols(&mut self) -> Vec<Expr> {
+        use TokenKind::*;
+        let mut args = Vec::new();
+        while let Some(token_kind) = self.0.peek() {
+            if token_kind == &RightBracket {
+                break;
+            }
+            args.push(self.parse_symbol());
+        }
+        args
+    }
+
     fn parse_form(&mut self, open: TokenKind) -> Expr {
         use TokenKind::*;
         match self.0.peek() {
@@ -103,13 +115,7 @@ where
                 "lambda" => {
                     let lam_tok = self.0.next().unwrap();
                     let _args_open = self.0.next().unwrap();
-                    let mut args = Vec::new();
-                    while let Some(token_kind) = self.0.peek() {
-                        if token_kind == &RightBracket {
-                            break;
-                        }
-                        args.push(self.parse_symbol());
-                    }
+                    let args = self.parse_symbols();
                     let _args_close = self.0.next().unwrap();
                     let body = self.parse_expr();
                     let close = self.0.next().unwrap();
