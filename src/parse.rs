@@ -102,91 +102,96 @@ pub fn parse(tokens: Vec<TokenKind>) -> Expr {
     ParseState(tokens.into_iter().peekable()).parse_expr()
 }
 
-#[test]
-fn test_parse() {
-    use TokenKind::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(
-        parse(vec![Symbol("test".to_string())]),
-        Expr::Symbol(Symbol("test".to_string()), "test".to_string())
-    );
-    assert_eq!(parse(vec![Number(0)]), Expr::Number(Number(0), 0));
-    assert_eq!(
-        parse(vec![
-            LeftBracket,
-            Symbol("if".to_string()),
-            Number(0),
-            Number(1),
-            Number(2),
-            RightBracket,
-        ]),
-        Expr::If(
-            LeftBracket,
-            Symbol("if".to_string()),
-            Box::new(Expr::Number(Number(0), 0)),
-            Box::new(Expr::Number(Number(1), 1)),
-            Box::new(Expr::Number(Number(2), 2)),
-            RightBracket,
-        )
-    );
-    assert_eq!(
-        parse(vec![
-            LeftBracket,
-            Symbol("define".to_string()),
-            Symbol("test".to_string()),
-            Number(0),
-            RightBracket,
-        ]),
-        Expr::Define(
-            LeftBracket,
-            Symbol("define".to_string()),
-            Symbol("test".to_string()),
-            Box::new(Expr::Number(Number(0), 0)),
-            RightBracket
-        )
-    );
-    assert_eq!(
-        parse(vec![
-            LeftBracket,
-            Symbol("test".to_string()),
-            Number(0),
-            RightBracket,
-        ]),
-        Expr::Call(
-            LeftBracket,
-            Symbol("test".to_string()),
-            vec![Expr::Number(Number(0), 0)],
-            RightBracket
-        )
-    );
-    assert_eq!(
-        parse(vec![
-            LeftBracket,
-            Symbol("quote".to_string()),
-            Number(0),
-            RightBracket,
-        ]),
-        Expr::Quote(
-            LeftBracket,
-            Symbol("quote".to_string()),
-            Box::new(Expr::Number(Number(0), 0)),
-            RightBracket
-        )
-    );
-    assert_eq!(
-        parse(vec![
-            LeftBracket,
-            Symbol("lambda".to_string()),
-            Symbol("arg".to_string()),
-            Number(0),
-            RightBracket,
-        ]),
-        Expr::Lambda(
-            LeftBracket,
-            Symbol("lambda".to_string()),
-            Box::new(Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())),
-            Box::new(Expr::Number(Number(0), 0)),
-            RightBracket
-        )
-    );
+    #[test]
+    fn test_parse() {
+        use TokenKind::*;
+
+        assert_eq!(
+            parse(vec![Symbol("test".to_string())]),
+            Expr::Symbol(Symbol("test".to_string()), "test".to_string())
+        );
+        assert_eq!(parse(vec![Number(0)]), Expr::Number(Number(0), 0));
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("if".to_string()),
+                Number(0),
+                Number(1),
+                Number(2),
+                RightBracket,
+            ]),
+            Expr::If(
+                LeftBracket,
+                Symbol("if".to_string()),
+                Box::new(Expr::Number(Number(0), 0)),
+                Box::new(Expr::Number(Number(1), 1)),
+                Box::new(Expr::Number(Number(2), 2)),
+                RightBracket,
+            )
+        );
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("define".to_string()),
+                Symbol("test".to_string()),
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Define(
+                LeftBracket,
+                Symbol("define".to_string()),
+                Symbol("test".to_string()),
+                Box::new(Expr::Number(Number(0), 0)),
+                RightBracket
+            )
+        );
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("test".to_string()),
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Call(
+                LeftBracket,
+                Symbol("test".to_string()),
+                vec![Expr::Number(Number(0), 0)],
+                RightBracket
+            )
+        );
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("quote".to_string()),
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Quote(
+                LeftBracket,
+                Symbol("quote".to_string()),
+                Box::new(Expr::Number(Number(0), 0)),
+                RightBracket
+            )
+        );
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                Symbol("arg".to_string()),
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Lambda(
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                Box::new(Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())),
+                Box::new(Expr::Number(Number(0), 0)),
+                RightBracket
+            )
+        );
+    }
 }
