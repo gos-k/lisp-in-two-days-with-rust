@@ -122,6 +122,14 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                     .into_iter()
                     .map(|a| eval_with_env(a, env))
                     .collect::<Result<Vec<_>, _>>()?),
+                Some(Value::Lambda(s, e)) => {
+                    let mut new_env = env.clone();
+                    new_env.insert(
+                        s.to_string(),
+                        eval_with_env(args[0].clone(), &mut env.clone())?,
+                    );
+                    eval_with_env(e.clone(), &mut new_env)
+                }
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
