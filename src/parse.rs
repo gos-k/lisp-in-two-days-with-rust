@@ -15,7 +15,7 @@ pub enum Expr {
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
-    Lambda(TokenKind, TokenKind, Box<Expr>, Box<Expr>, TokenKind),
+    Lambda(TokenKind, TokenKind, Vec<Expr>, Box<Expr>, TokenKind),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -35,6 +35,21 @@ where
                     let sym = s.clone();
                     Expr::Symbol(token_kind, sym)
                 }
+            }
+        } else {
+            panic!("invalid expression")
+        }
+    }
+
+    fn parse_symbol(&mut self) -> Expr {
+        if let Some(token_kind) = self.0.next() {
+            use TokenKind::*;
+            match token_kind {
+                Symbol(ref s) => {
+                    let sym = s.clone();
+                    Expr::Symbol(token_kind, sym)
+                }
+                _ => panic!("invalid expression"),
             }
         } else {
             panic!("invalid expression")
@@ -75,10 +90,18 @@ where
                 }
                 "lambda" => {
                     let lam_tok = self.0.next().unwrap();
-                    let arg = self.parse_expr();
+                    let _args_open = self.0.next().unwrap();
+                    let mut args = Vec::new();
+                    while let Some(token_kind) = self.0.peek() {
+                        if token_kind == &RightBracket {
+                            break;
+                        }
+                        args.push(self.parse_symbol());
+                    }
+                    let _args_close = self.0.next().unwrap();
                     let body = self.parse_expr();
                     let close = self.0.next().unwrap();
-                    Expr::Lambda(open, lam_tok, Box::new(arg), Box::new(body), close)
+                    Expr::Lambda(open, lam_tok, args, Box::new(body), close)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -181,14 +204,16 @@ mod tests {
             parse(vec![
                 LeftBracket,
                 Symbol("lambda".to_string()),
+                LeftBracket,
                 Symbol("arg".to_string()),
+                RightBracket,
                 Number(0),
                 RightBracket,
             ]),
             Expr::Lambda(
                 LeftBracket,
                 Symbol("lambda".to_string()),
-                Box::new(Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())),
+                vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
                 Box::new(Expr::Number(Number(0), 0)),
                 RightBracket
             )

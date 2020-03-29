@@ -14,7 +14,7 @@ pub enum Value {
     Number(i64),
     Symbol(String),
     Callable(Callable),
-    Lambda(String, Expr),
+    Lambda(Vec<String>, Expr),
     Parent(Parent),
     T,
     Nil,
@@ -115,32 +115,41 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             env.insert(sym, value.clone());
             Ok(value)
         }
-        Expr::Call(_, sym, args, _) => {
+        Expr::Call(_, sym, params, _) => {
             let sym = to_sym(sym)?;
             match env.get(&sym) {
-                Some(Value::Callable(c)) => c(args
+                Some(Value::Callable(c)) => c(params
                     .into_iter()
                     .map(|a| eval_with_env(a, env))
                     .collect::<Result<Vec<_>, _>>()?),
-                Some(Value::Lambda(s, e)) => {
+                Some(Value::Lambda(args, e)) => {
                     let mut new_env = env.clone();
-                    new_env.insert(
-                        s.to_string(),
-                        eval_with_env(args[0].clone(), &mut env.clone())?,
-                    );
+                    args.into_iter().zip(params.into_iter()).for_each(|(a, p)| {
+                        new_env.insert(
+                            a.to_string(),
+                            eval_with_env(p.clone(), &mut env.clone()).unwrap(),
+                        );
+                        ()
+                    });
                     eval_with_env(e.clone(), &mut new_env)
                 }
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
         Expr::Quote(_, _, value, _) => eval_with_quote(*value),
-        Expr::Lambda(_, _, arg, expr, _) => {
+        Expr::Lambda(_, _, args, expr, _) => {
             let expr = *expr.clone();
-            if let Expr::Symbol(_, sym) = *arg {
-                Ok(Value::Lambda(sym, expr))
-            } else {
-                panic!("lambda eval");
-            }
+            let args = args
+                .into_iter()
+                .map(|a| {
+                    if let Expr::Symbol(_, sym) = a {
+                        sym
+                    } else {
+                        panic!("lambda eval");
+                    }
+                })
+                .collect::<Vec<String>>();
+            Ok(Value::Lambda(args, expr))
         }
     }
 }
@@ -190,19 +199,19 @@ mod tests {
             eval(Expr::Lambda(
                 LeftBracket,
                 Symbol("lambda".to_string()),
-                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
                 Box::new(Expr::Number(Number(0), 0)),
                 RightBracket,
             ))
             .unwrap(),
-            Value::Lambda("test".to_string(), Expr::Number(Number(0), 0))
+            Value::Lambda(vec!["test".to_string()], Expr::Number(Number(0), 0))
         );
 
         assert_eq!(
             eval(Expr::Lambda(
                 LeftBracket,
                 Symbol("lambda".to_string()),
-                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
                 Box::new(Expr::Call(
                     TokenKind::LeftBracket,
                     TokenKind::Symbol("*".to_string()),
@@ -216,7 +225,7 @@ mod tests {
             ))
             .unwrap(),
             Value::Lambda(
-                "test".to_string(),
+                vec!["test".to_string()],
                 Expr::Call(
                     TokenKind::LeftBracket,
                     TokenKind::Symbol("*".to_string()),
