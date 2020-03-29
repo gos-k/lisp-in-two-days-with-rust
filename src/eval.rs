@@ -14,6 +14,7 @@ pub enum Value {
     Number(i64),
     Symbol(String),
     Callable(Callable),
+    Lambda(String, Expr),
     Parent(Parent),
     T,
     Nil,
@@ -125,7 +126,14 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             }
         }
         Expr::Quote(_, _, value, _) => eval_with_quote(*value),
-        Expr::Lambda(_, _, _, _, _) => panic!("lambda not impl"),
+        Expr::Lambda(_, _, arg, expr, _) => {
+            let expr = *expr.clone();
+            if let Expr::Symbol(_, sym) = *arg {
+                Ok(Value::Lambda(sym, expr))
+            } else {
+                panic!("lambda eval");
+            }
+        }
     }
 }
 
@@ -159,5 +167,16 @@ fn test_eval() {
         ))
         .unwrap(),
         Value::Symbol("test".to_string())
+    );
+    assert_eq!(
+        eval(Expr::Lambda(
+            LeftBracket,
+            Symbol("lambda".to_string()),
+            Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+            Box::new(Expr::Number(Number(0), 0)),
+            RightBracket,
+        ))
+        .unwrap(),
+        Value::Lambda("test".to_string(), Expr::Number(Number(0), 0))
     );
 }
