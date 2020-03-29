@@ -180,6 +180,12 @@ mod tests {
             .unwrap(),
             Value::Symbol("test".to_string())
         );
+    }
+
+    #[test]
+    fn test_lambda() {
+        use TokenKind::*;
+
         assert_eq!(
             eval(Expr::Lambda(
                 LeftBracket,
@@ -190,6 +196,37 @@ mod tests {
             ))
             .unwrap(),
             Value::Lambda("test".to_string(), Expr::Number(Number(0), 0))
+        );
+
+        assert_eq!(
+            eval(Expr::Lambda(
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                Box::new(Expr::Call(
+                    TokenKind::LeftBracket,
+                    TokenKind::Symbol("*".to_string()),
+                    vec![
+                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
+                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
+                    ],
+                    TokenKind::RightBracket
+                )),
+                RightBracket,
+            ))
+            .unwrap(),
+            Value::Lambda(
+                "test".to_string(),
+                Expr::Call(
+                    TokenKind::LeftBracket,
+                    TokenKind::Symbol("*".to_string()),
+                    vec![
+                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
+                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
+                    ],
+                    TokenKind::RightBracket
+                )
+            )
         );
     }
 }
