@@ -78,41 +78,46 @@ pub fn tokenise(source: &str) -> Vec<TokenKind> {
     return result;
 }
 
-#[test]
-fn test_tokenise() {
-    use TokenKind::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(tokenise("0"), [Number(0)]);
-    assert_eq!(tokenise("test"), [Symbol("test".to_string())]);
-    assert_eq!(
-        tokenise("(test 0)"),
-        [
-            LeftBracket,
-            Symbol("test".to_string()),
-            Number(0),
-            RightBracket,
-        ]
-    );
-    assert_eq!(
-        tokenise("(cons 0 (cons (cons 1 nil) (cons 2 nil)))"),
-        [
-            LeftBracket,
-            Symbol("cons".to_string()),
-            Number(0),
-            LeftBracket,
-            Symbol("cons".to_string()),
-            LeftBracket,
-            Symbol("cons".to_string()),
-            Number(1),
-            Symbol("nil".to_string()),
-            RightBracket,
-            LeftBracket,
-            Symbol("cons".to_string()),
-            Number(2),
-            Symbol("nil".to_string()),
-            RightBracket,
-            RightBracket,
-            RightBracket,
-        ]
-    );
+    #[test]
+    fn test_tokenise() {
+        use TokenKind::*;
+
+        assert_eq!(tokenise("0"), [Number(0)]);
+        assert_eq!(tokenise("test"), [Symbol("test".to_string())]);
+        assert_eq!(
+            tokenise("(test 0)"),
+            [
+                LeftBracket,
+                Symbol("test".to_string()),
+                Number(0),
+                RightBracket,
+            ]
+        );
+        assert_eq!(
+            tokenise("(cons 0 (cons (cons 1 nil) (cons 2 nil)))"),
+            [
+                LeftBracket,
+                Symbol("cons".to_string()),
+                Number(0),
+                LeftBracket,
+                Symbol("cons".to_string()),
+                LeftBracket,
+                Symbol("cons".to_string()),
+                Number(1),
+                Symbol("nil".to_string()),
+                RightBracket,
+                LeftBracket,
+                Symbol("cons".to_string()),
+                Number(2),
+                Symbol("nil".to_string()),
+                RightBracket,
+                RightBracket,
+                RightBracket,
+            ]
+        );
+    }
 }
