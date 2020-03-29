@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
 use super::eval::*;
-use super::parse::*;
-use super::token::*;
 
 fn last_or_nil(values: Vec<Value>) -> Value {
     values.last().cloned().unwrap_or(Value::Nil)
@@ -88,13 +86,14 @@ pub fn make_global_env() -> HashMap<String, Value> {
     env
 }
 
-fn env_eval(expr: Expr) -> EvalResult {
-    eval_with_env(expr, &mut make_global_env())
-}
-
 #[test]
 fn test_env() {
-    use TokenKind::*;
+    use super::parse::*;
+    use super::token::TokenKind::*;
+
+    fn env_eval(expr: Expr) -> EvalResult {
+        eval_with_env(expr, &mut make_global_env())
+    }
 
     assert_eq!(
         env_eval(Expr::Symbol(Symbol("t".to_string()), "t".to_string())).unwrap(),

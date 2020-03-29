@@ -145,13 +145,13 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
     }
 }
 
-fn eval(expr: Expr) -> EvalResult {
-    eval_with_env(expr, &mut HashMap::new())
-}
-
 #[test]
 fn test_eval() {
     use TokenKind::*;
+
+    fn eval(expr: Expr) -> EvalResult {
+        eval_with_env(expr, &mut HashMap::new())
+    }
 
     assert_eq!(eval(Expr::Number(Number(0), 0)).unwrap(), Value::Number(0));
     assert_eq!(
