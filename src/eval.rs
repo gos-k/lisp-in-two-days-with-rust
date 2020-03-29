@@ -145,46 +145,51 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
     }
 }
 
-#[test]
-fn test_eval() {
-    use TokenKind::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
     fn eval(expr: Expr) -> EvalResult {
         eval_with_env(expr, &mut HashMap::new())
     }
 
-    assert_eq!(eval(Expr::Number(Number(0), 0)).unwrap(), Value::Number(0));
-    assert_eq!(
-        eval(Expr::If(
-            LeftBracket,
-            Symbol("if".to_string()),
-            Box::new(Expr::Number(Number(0), 0)),
-            Box::new(Expr::Number(Number(1), 1)),
-            Box::new(Expr::Number(Number(2), 2)),
-            RightBracket,
-        ))
-        .unwrap(),
-        Value::Number(1)
-    );
-    assert_eq!(
-        eval(Expr::Quote(
-            LeftBracket,
-            Symbol("quote".to_string()),
-            Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
-            RightBracket,
-        ))
-        .unwrap(),
-        Value::Symbol("test".to_string())
-    );
-    assert_eq!(
-        eval(Expr::Lambda(
-            LeftBracket,
-            Symbol("lambda".to_string()),
-            Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
-            Box::new(Expr::Number(Number(0), 0)),
-            RightBracket,
-        ))
-        .unwrap(),
-        Value::Lambda("test".to_string(), Expr::Number(Number(0), 0))
-    );
+    #[test]
+    fn test_eval() {
+        use TokenKind::*;
+
+        assert_eq!(eval(Expr::Number(Number(0), 0)).unwrap(), Value::Number(0));
+        assert_eq!(
+            eval(Expr::If(
+                LeftBracket,
+                Symbol("if".to_string()),
+                Box::new(Expr::Number(Number(0), 0)),
+                Box::new(Expr::Number(Number(1), 1)),
+                Box::new(Expr::Number(Number(2), 2)),
+                RightBracket,
+            ))
+            .unwrap(),
+            Value::Number(1)
+        );
+        assert_eq!(
+            eval(Expr::Quote(
+                LeftBracket,
+                Symbol("quote".to_string()),
+                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                RightBracket,
+            ))
+            .unwrap(),
+            Value::Symbol("test".to_string())
+        );
+        assert_eq!(
+            eval(Expr::Lambda(
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                Box::new(Expr::Number(Number(0), 0)),
+                RightBracket,
+            ))
+            .unwrap(),
+            Value::Lambda("test".to_string(), Expr::Number(Number(0), 0))
+        );
+    }
 }
