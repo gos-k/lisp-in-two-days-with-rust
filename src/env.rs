@@ -86,21 +86,33 @@ pub fn make_global_env() -> HashMap<String, Value> {
     env
 }
 
-#[test]
-fn test_env() {
-    use super::parse::*;
-    use super::token::TokenKind::*;
+#[cfg(test)]
+mod tests {
+    use super::super::parse::*;
+    use super::super::token::*;
+    use super::*;
 
-    fn env_eval(expr: Expr) -> EvalResult {
+    fn eval(expr: Expr) -> EvalResult {
         eval_with_env(expr, &mut make_global_env())
     }
 
-    assert_eq!(
-        env_eval(Expr::Symbol(Symbol("t".to_string()), "t".to_string())).unwrap(),
-        Value::T
-    );
-    assert_eq!(
-        env_eval(Expr::Symbol(Symbol("nil".to_string()), "nil".to_string())).unwrap(),
-        Value::Nil
-    );
+    #[test]
+    fn test_env() {
+        assert_eq!(
+            eval(Expr::Symbol(
+                TokenKind::Symbol("t".to_string()),
+                "t".to_string()
+            ))
+            .unwrap(),
+            Value::T
+        );
+        assert_eq!(
+            eval(Expr::Symbol(
+                TokenKind::Symbol("nil".to_string()),
+                "nil".to_string()
+            ))
+            .unwrap(),
+            Value::Nil
+        );
+    }
 }
