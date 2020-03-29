@@ -41,6 +41,18 @@ where
         }
     }
 
+    fn parse_exprs(&mut self) -> Vec<Expr> {
+        use TokenKind::*;
+        let mut exprs = Vec::new();
+        while let Some(token_kind) = self.0.peek() {
+            if token_kind == &RightBracket {
+                break;
+            }
+            exprs.push(self.parse_expr());
+        }
+        exprs
+    }
+
     fn parse_symbol(&mut self) -> Expr {
         if let Some(token_kind) = self.0.next() {
             use TokenKind::*;
@@ -105,13 +117,7 @@ where
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
-                    let mut args = Vec::new();
-                    while let Some(token_kind) = self.0.peek() {
-                        if token_kind == &RightBracket {
-                            break;
-                        }
-                        args.push(self.parse_expr());
-                    }
+                    let args = self.parse_exprs();
                     let close = self.0.next().unwrap();
                     Expr::Call(open, sym_tok, args, close)
                 }
