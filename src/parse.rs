@@ -15,7 +15,7 @@ pub enum Expr {
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
-    Lambda(TokenKind, TokenKind, Vec<Expr>, Box<Expr>, TokenKind),
+    Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -117,9 +117,9 @@ where
                     let _args_open = self.0.next().unwrap();
                     let args = self.parse_symbols();
                     let _args_close = self.0.next().unwrap();
-                    let body = self.parse_expr();
+                    let body = self.parse_exprs();
                     let close = self.0.next().unwrap();
-                    Expr::Lambda(open, lam_tok, args, Box::new(body), close)
+                    Expr::Lambda(open, lam_tok, args, body, close)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -212,6 +212,12 @@ mod tests {
                 RightBracket
             )
         );
+    }
+
+    #[test]
+    fn test_parse_lambda() {
+        use TokenKind::*;
+
         assert_eq!(
             parse(vec![
                 LeftBracket,
@@ -226,7 +232,31 @@ mod tests {
                 LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
-                Box::new(Expr::Number(Number(0), 0)),
+                vec![Expr::Number(Number(0), 0)],
+                RightBracket
+            )
+        );
+
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                LeftBracket,
+                Symbol("alfa".to_string()),
+                Symbol("bravo".to_string()),
+                RightBracket,
+                Number(0),
+                Number(1),
+                RightBracket,
+            ]),
+            Expr::Lambda(
+                LeftBracket,
+                Symbol("lambda".to_string()),
+                vec![
+                    Expr::Symbol(Symbol("alfa".to_string()), "alfa".to_string()),
+                    Expr::Symbol(Symbol("bravo".to_string()), "bravo".to_string()),
+                ],
+                vec![Expr::Number(Number(0), 0), Expr::Number(Number(1), 1),],
                 RightBracket
             )
         );

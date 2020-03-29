@@ -14,7 +14,7 @@ pub enum Value {
     Number(i64),
     Symbol(String),
     Callable(Callable),
-    Lambda(Vec<String>, Expr),
+    Lambda(Vec<String>, Vec<Expr>),
     Parent(Parent),
     T,
     Nil,
@@ -122,7 +122,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                     .into_iter()
                     .map(|a| eval_with_env(a, env))
                     .collect::<Result<Vec<_>, _>>()?),
-                Some(Value::Lambda(args, e)) => {
+                Some(Value::Lambda(args, exprs)) => {
                     let mut new_env = env.clone();
                     args.into_iter().zip(params.into_iter()).for_each(|(a, p)| {
                         new_env.insert(
@@ -131,14 +131,21 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                         );
                         ()
                     });
-                    eval_with_env(e.clone(), &mut new_env)
+                    let results = exprs
+                        .into_iter()
+                        .map(|expr| eval_with_env(expr.clone(), &mut new_env))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    if let Some((last, _)) = results.split_last() {
+                        Ok(last.clone())
+                    } else {
+                        Err(EvalError(format!("exec lambda '{:?}'", exprs)))
+                    }
                 }
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
         Expr::Quote(_, _, value, _) => eval_with_quote(*value),
-        Expr::Lambda(_, _, args, expr, _) => {
-            let expr = *expr.clone();
+        Expr::Lambda(_, _, args, exprs, _) => {
             let args = args
                 .into_iter()
                 .map(|a| {
@@ -149,7 +156,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                     }
                 })
                 .collect::<Vec<String>>();
-            Ok(Value::Lambda(args, expr))
+            Ok(Value::Lambda(args, exprs.to_vec()))
         }
     }
 }
@@ -200,11 +207,11 @@ mod tests {
                 LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
-                Box::new(Expr::Number(Number(0), 0)),
+                vec![Expr::Number(Number(0), 0)],
                 RightBracket,
             ))
             .unwrap(),
-            Value::Lambda(vec!["test".to_string()], Expr::Number(Number(0), 0))
+            Value::Lambda(vec!["test".to_string()], vec![Expr::Number(Number(0), 0)])
         );
 
         assert_eq!(
@@ -212,29 +219,35 @@ mod tests {
                 LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
-                Box::new(Expr::Call(
-                    TokenKind::LeftBracket,
-                    TokenKind::Symbol("*".to_string()),
-                    vec![
-                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
-                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
-                    ],
-                    TokenKind::RightBracket
-                )),
+                vec![
+                    Expr::Number(Number(0), 0),
+                    Expr::Call(
+                        LeftBracket,
+                        Symbol("*".to_string()),
+                        vec![
+                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                        ],
+                        RightBracket
+                    )
+                ],
                 RightBracket,
             ))
             .unwrap(),
             Value::Lambda(
                 vec!["test".to_string()],
-                Expr::Call(
-                    TokenKind::LeftBracket,
-                    TokenKind::Symbol("*".to_string()),
-                    vec![
-                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
-                        Expr::Symbol(TokenKind::Symbol("test".to_string()), "test".to_string()),
-                    ],
-                    TokenKind::RightBracket
-                )
+                vec![
+                    Expr::Number(Number(0), 0),
+                    Expr::Call(
+                        LeftBracket,
+                        Symbol("*".to_string()),
+                        vec![
+                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                        ],
+                        RightBracket
+                    )
+                ]
             )
         );
     }
