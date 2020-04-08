@@ -158,6 +158,7 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                 .collect::<Vec<String>>();
             Ok(Value::Lambda(args, exprs.to_vec()))
         }
+        Expr::Macro(_, _, _, _, _, _) => panic!("macro is not impl"),
     }
 }
 

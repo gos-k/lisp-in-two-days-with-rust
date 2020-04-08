@@ -16,6 +16,14 @@ pub enum Expr {
     Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
     Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
+    Macro(
+        TokenKind,
+        TokenKind,
+        TokenKind,
+        Vec<Expr>,
+        Vec<Expr>,
+        TokenKind,
+    ),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -120,6 +128,16 @@ where
                     let body = self.parse_exprs();
                     let close = self.0.next().unwrap();
                     Expr::Lambda(open, lam_tok, args, body, close)
+                }
+                "macro" => {
+                    let mac_tok = self.0.next().unwrap();
+                    let name_tok = self.0.next().unwrap();
+                    let _args_open = self.0.next().unwrap();
+                    let args = self.parse_symbols();
+                    let _args_close = self.0.next().unwrap();
+                    let body = self.parse_exprs();
+                    let close = self.0.next().unwrap();
+                    Expr::Macro(open, mac_tok, name_tok, args, body, close)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -275,6 +293,31 @@ mod tests {
                     Expr::Symbol(Symbol("bravo".to_string()), "bravo".to_string()),
                 ],
                 vec![Expr::Number(Number(0), 0), Expr::Number(Number(1), 1),],
+                RightBracket
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_macro() {
+        use TokenKind::*;
+
+        assert_eq!(
+            parse(vec![
+                LeftBracket,
+                Symbol("macro".to_string()),
+                Symbol("test".to_string()),
+                LeftBracket,
+                RightBracket,
+                Number(0),
+                RightBracket,
+            ]),
+            Expr::Macro(
+                LeftBracket,
+                Symbol("macro".to_string()),
+                Symbol("test".to_string()),
+                vec![],
+                vec![Expr::Number(Number(0), 0)],
                 RightBracket
             )
         );
