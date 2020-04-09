@@ -93,7 +93,7 @@ mod tests {
     use super::*;
 
     fn eval(expr: Expr) -> EvalResult {
-        eval_with_env(expr, &mut make_global_env())
+        eval_with_env(expr, &mut make_global_env(), &mut make_global_env())
     }
 
     #[test]

@@ -28,7 +28,8 @@ pub fn read() -> Expr {
 
 fn main() {
     let mut env = make_global_env();
+    let mut macro_table = make_global_env();
     loop {
-        print(eval_with_env(read(), &mut env));
+        print(eval_with_env(read(), &mut env, &mut macro_table));
     }
 }

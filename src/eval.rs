@@ -98,7 +98,11 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
     }
 }
 
-pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult {
+pub fn eval_with_env(
+    expr: Expr,
+    env: &mut HashMap<String, Value>,
+    macro_table: &mut HashMap<String, Value>,
+) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => env
             .get(&s)
@@ -106,11 +110,15 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             .ok_or_else(|| EvalError(format!("eval undefind symbol {}", s))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
         Expr::If(_, _, cond, then, elz, _) => {
-            let result = eval_with_env(*cond, env)?.is_truthy();
-            Ok(eval_with_env(if result { *then } else { *elz }, env)?)
+            let result = eval_with_env(*cond, env, macro_table)?.is_truthy();
+            Ok(eval_with_env(
+                if result { *then } else { *elz },
+                env,
+                macro_table,
+            )?)
         }
         Expr::Define(_, _, sym, value, _) => {
-            let value = eval_with_env(*value, env)?;
+            let value = eval_with_env(*value, env, macro_table)?;
             let sym = to_sym(sym)?;
             env.insert(sym, value.clone());
             Ok(value)
@@ -120,20 +128,20 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
             match env.get(&sym) {
                 Some(Value::Callable(c)) => c(params
                     .into_iter()
-                    .map(|a| eval_with_env(a, env))
+                    .map(|a| eval_with_env(a, env, macro_table))
                     .collect::<Result<Vec<_>, _>>()?),
                 Some(Value::Lambda(args, exprs)) => {
                     let mut new_env = env.clone();
                     args.into_iter().zip(params.into_iter()).for_each(|(a, p)| {
                         new_env.insert(
                             a.to_string(),
-                            eval_with_env(p.clone(), &mut env.clone()).unwrap(),
+                            eval_with_env(p.clone(), &mut env.clone(), macro_table).unwrap(),
                         );
                         ()
                     });
                     let results = exprs
                         .into_iter()
-                        .map(|expr| eval_with_env(expr.clone(), &mut new_env))
+                        .map(|expr| eval_with_env(expr.clone(), &mut new_env, macro_table))
                         .collect::<Result<Vec<_>, _>>()?;
                     if let Some((last, _)) = results.split_last() {
                         Ok(last.clone())
@@ -158,7 +166,21 @@ pub fn eval_with_env(expr: Expr, env: &mut HashMap<String, Value>) -> EvalResult
                 .collect::<Vec<String>>();
             Ok(Value::Lambda(args, exprs.to_vec()))
         }
-        Expr::Macro(_, _, _, _, _, _) => panic!("macro is not impl"),
+        Expr::Macro(_, _, name, args, exprs, _) => {
+            let name = to_sym(name)?;
+            let args = args
+                .into_iter()
+                .map(|a| {
+                    if let Expr::Symbol(_, sym) = a {
+                        sym
+                    } else {
+                        panic!("lambda eval");
+                    }
+                })
+                .collect::<Vec<String>>();
+            macro_table.insert(name.clone(), Value::Lambda(args, exprs.to_vec()));
+            Ok(Value::Symbol(name.to_string()))
+        }
     }
 }
 
@@ -167,7 +189,7 @@ mod tests {
     use super::*;
 
     fn eval(expr: Expr) -> EvalResult {
-        eval_with_env(expr, &mut HashMap::new())
+        eval_with_env(expr, &mut HashMap::new(), &mut HashMap::new())
     }
 
     #[test]
@@ -250,6 +272,36 @@ mod tests {
                     )
                 ]
             )
+        );
+    }
+
+    #[test]
+    fn test_eval_macro() {
+        use TokenKind::*;
+
+        let mut env: HashMap<String, Value> = HashMap::new();
+        let mut macro_table: HashMap<String, Value> = HashMap::new();
+
+        assert_eq!(
+            eval_with_env(
+                Expr::Macro(
+                    LeftBracket,
+                    Symbol("macro".to_string()),
+                    Symbol("test".to_string()),
+                    vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
+                    vec![Expr::Number(Number(0), 0)],
+                    RightBracket,
+                ),
+                &mut env,
+                &mut macro_table
+            )
+            .unwrap(),
+            Value::Symbol("test".to_string())
+        );
+
+        assert_eq!(
+            macro_table.get("test").unwrap().clone(),
+            Value::Lambda(vec!["arg".to_string()], vec![Expr::Number(Number(0), 0)])
         );
     }
 }
