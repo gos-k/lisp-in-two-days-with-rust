@@ -7,6 +7,7 @@ fn symbol_expression(result: Value) -> String {
         Number(number) => number.to_string(),
         Symbol(symbol) => symbol.to_string(),
         T => "t".to_string(),
+        Nil => "nil".to_string(),
         other => panic!("not impl {:?}", other),
     }
 }
@@ -32,5 +33,6 @@ mod tests {
             "test".to_string()
         );
         assert_eq!(symbol_expression(T), "t".to_string());
+        assert_eq!(symbol_expression(Nil), "nil".to_string());
     }
 }
