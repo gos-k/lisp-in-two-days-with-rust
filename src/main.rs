@@ -3,19 +3,14 @@ use std::io::Write;
 mod env;
 mod eval;
 mod parse;
+mod print;
 mod token;
 
 use env::*;
 use eval::*;
 use parse::*;
+use print::*;
 use token::*;
-
-pub fn print(result: EvalResult) {
-    match result {
-        Ok(value) => println!(" ~> {:?}", value),
-        Err(error) => println!(" !! {:?}", error),
-    }
-}
 
 pub fn read() -> Expr {
     let mut buffer = String::new();
