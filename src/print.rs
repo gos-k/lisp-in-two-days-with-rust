@@ -5,6 +5,7 @@ fn symbol_expression(result: Value) -> String {
 
     match result {
         Number(number) => number.to_string(),
+        Symbol(symbol) => symbol.to_string(),
         other => panic!("not impl {:?}", other),
     }
 }
@@ -25,5 +26,9 @@ mod tests {
         use Value::*;
 
         assert_eq!(symbol_expression(Number(0)), "0".to_string());
+        assert_eq!(
+            symbol_expression(Symbol("test".to_string())),
+            "test".to_string()
+        );
     }
 }
