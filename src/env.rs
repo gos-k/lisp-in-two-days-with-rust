@@ -27,42 +27,27 @@ pub fn make_global_env() -> HashMap<String, Value> {
     );
     env.insert(
         "atom".into(),
-        Callable(|values| match values[0].clone() {
-            Number(_) | Symbol(_) => Ok(T),
-            _ => Ok(Nil),
+        Callable(|values| {
+            Ok(match values[0].clone() {
+                Number(_) | Symbol(_) => T,
+                _ => Nil,
+            })
         }),
     );
     env.insert(
         "eq".into(),
         Callable(|values| match values[0].clone() {
-            Number(lhs) => {
-                if let Number(rhs) = values[1] {
-                    Ok(if lhs == rhs { T } else { Nil })
-                } else {
-                    Ok(Nil)
-                }
-            }
-            Symbol(lhs) => {
-                if let Symbol(rhs) = &values[1] {
-                    Ok(if lhs == *rhs { T } else { Nil })
-                } else {
-                    Ok(Nil)
-                }
-            }
-            T => match values[1] {
-                T => Ok(T),
-                _ => Ok(Nil),
-            },
+            Number(_) | Symbol(_) => Ok(if values[0] == values[1] { T } else { Nil }),
+            T => Ok(match values[1] {
+                T => T,
+                _ => Nil,
+            }),
             _ => Ok(Nil),
         }),
     );
     env.insert(
         "cons".into(),
-        Callable(|values| {
-            let lhs = values[0].clone();
-            let rhs = values[1].clone();
-            Ok(cons(lhs, rhs))
-        }),
+        Callable(|values| Ok(cons(values[0].clone(), values[1].clone()))),
     );
     env.insert(
         "car".into(),
