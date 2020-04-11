@@ -7,63 +7,58 @@ fn last_or_nil(values: Vec<Value>) -> Value {
 }
 
 pub fn make_global_env() -> HashMap<String, Value> {
+    use Value::*;
+
     let mut env = HashMap::new();
-    env.insert("t".into(), Value::T);
-    env.insert("nil".into(), Value::Nil);
-    env.insert(
-        "begin".into(),
-        Value::Callable(|values| Ok(last_or_nil(values))),
-    );
+    env.insert("t".into(), T);
+    env.insert("nil".into(), Nil);
+    env.insert("begin".into(), Callable(|values| Ok(last_or_nil(values))));
     env.insert(
         "+".into(),
-        Value::Callable(|values| {
-            Ok(Value::Number(
-                values.iter().map(|i| i.clone().into_num()).sum(),
-            ))
-        }),
+        Callable(|values| Ok(Number(values.iter().map(|i| i.clone().into_num()).sum()))),
     );
     env.insert(
         "*".into(),
-        Value::Callable(|values| {
-            Ok(Value::Number(
+        Callable(|values| {
+            Ok(Number(
                 values.iter().fold(1, |mul, i| mul * i.clone().into_num()),
             ))
         }),
     );
     env.insert(
         "atom".into(),
-        Value::Callable(|values| match values[0].clone() {
-            Value::Number(_) | Value::Symbol(_) => Ok(Value::T),
-            _ => Ok(Value::Nil),
+        Callable(|values| match values[0].clone() {
+            Number(_) | Symbol(_) => Ok(T),
+            _ => Ok(Nil),
         }),
     );
     env.insert(
         "eq".into(),
-        Value::Callable(|values| match values[0].clone() {
-            Value::Number(lhs) => {
-                if let Value::Number(rhs) = values[1] {
-                    Ok(if lhs == rhs { Value::T } else { Value::Nil })
+        Callable(|values| match values[0].clone() {
+            Number(lhs) => {
+                if let Number(rhs) = values[1] {
+                    Ok(if lhs == rhs { T } else { Nil })
                 } else {
-                    Ok(Value::Nil)
+                    Ok(Nil)
                 }
             }
-            Value::Symbol(lhs) => {
-                if let Value::Symbol(rhs) = &values[1] {
-                    Ok(if lhs == *rhs { Value::T } else { Value::Nil })
+            Symbol(lhs) => {
+                if let Symbol(rhs) = &values[1] {
+                    Ok(if lhs == *rhs { T } else { Nil })
                 } else {
-                    Ok(Value::Nil)
+                    Ok(Nil)
                 }
             }
-            Value::T => match values[1] {
-                Value::T => Ok(Value::T),
-                _ => Ok(Value::Nil),
+            T => match values[1] {
+                T => Ok(T),
+                _ => Ok(Nil),
             },
-            _ => Ok(Value::Nil),
+            _ => Ok(Nil),
         }),
     );
     env.insert(
         "cons".into(),
-        Value::Callable(|values| {
+        Callable(|values| {
             let lhs = values[0].clone();
             let rhs = values[1].clone();
             Ok(cons(lhs, rhs))
@@ -71,25 +66,25 @@ pub fn make_global_env() -> HashMap<String, Value> {
     );
     env.insert(
         "car".into(),
-        Value::Callable(|values| match &values[0] {
-            Value::Parent(parent) => Ok(*parent.lhs.clone()),
+        Callable(|values| match &values[0] {
+            Parent(parent) => Ok(*parent.lhs.clone()),
             other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
     env.insert(
         "cdr".into(),
-        Value::Callable(|values| match &values[0] {
-            Value::Parent(parent) => Ok(*parent.rhs.clone()),
+        Callable(|values| match &values[0] {
+            Parent(parent) => Ok(*parent.rhs.clone()),
             other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
     env.insert(
         "list".into(),
-        Value::Callable(|mut values| {
+        Callable(|mut values| {
             values.reverse();
             let result = values
                 .iter()
-                .fold(Value::Nil, |list, value| cons(value.clone(), list));
+                .fold(Nil, |list, value| cons(value.clone(), list));
             Ok(result)
         }),
     );
