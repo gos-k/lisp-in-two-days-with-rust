@@ -83,6 +83,16 @@ pub fn make_global_env() -> HashMap<String, Value> {
             other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
+    env.insert(
+        "list".into(),
+        Value::Callable(|mut values| {
+            values.reverse();
+            let result = values
+                .iter()
+                .fold(Value::Nil, |list, value| cons(value.clone(), list));
+            Ok(result)
+        }),
+    );
     env
 }
 
@@ -113,6 +123,26 @@ mod tests {
             ))
             .unwrap(),
             Value::Nil
+        );
+
+        assert_eq!(
+            eval(Expr::Call(
+                TokenKind::LeftBracket,
+                TokenKind::Symbol("list".to_string()),
+                vec![
+                    Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
+                    Expr::Number(TokenKind::Number(0), 0),
+                ],
+                TokenKind::RightBracket
+            ))
+            .unwrap(),
+            Value::Parent(Parent {
+                lhs: Box::new(Value::T),
+                rhs: Box::new(Value::Parent(Parent {
+                    lhs: Box::new(Value::Number(0)),
+                    rhs: Box::new(Value::Nil),
+                })),
+            })
         );
     }
 }
