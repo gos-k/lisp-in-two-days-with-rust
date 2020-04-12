@@ -80,7 +80,7 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
                 cons(Value::Symbol(sym.to_string()), value),
             ))
         }
-        Expr::Call(_, sym, args, _) => {
+        Expr::Call(sym, args) => {
             let sym = to_sym(sym)?;
             let mut args = args
                 .into_iter()
@@ -123,7 +123,7 @@ pub fn eval_with_env(
             env.insert(sym, value.clone());
             Ok(value)
         }
-        Expr::Call(_, sym, params, _) => {
+        Expr::Call(sym, params) => {
             let sym = to_sym(sym)?;
             match env.get(&sym) {
                 Some(Value::Callable(c)) => c(params
@@ -245,13 +245,11 @@ mod tests {
                 vec![
                     Expr::Number(Number(0), 0),
                     Expr::Call(
-                        LeftBracket,
                         Symbol("*".to_string()),
                         vec![
                             Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
                             Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
                         ],
-                        RightBracket
                     )
                 ],
                 RightBracket,
@@ -262,13 +260,11 @@ mod tests {
                 vec![
                     Expr::Number(Number(0), 0),
                     Expr::Call(
-                        LeftBracket,
                         Symbol("*".to_string()),
                         vec![
                             Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
                             Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
                         ],
-                        RightBracket
                     )
                 ]
             )

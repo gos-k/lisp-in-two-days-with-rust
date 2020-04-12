@@ -89,13 +89,11 @@ mod tests {
     #[test]
     fn test_env() {
         let cons_expr = Expr::Call(
-            TokenKind::LeftBracket,
             TokenKind::Symbol("cons".to_string()),
             vec![
                 Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
                 Expr::Number(TokenKind::Number(0), 0),
             ],
-            TokenKind::RightBracket,
         );
 
         assert_eq!(
@@ -125,10 +123,8 @@ mod tests {
 
         assert_eq!(
             eval(Expr::Call(
-                TokenKind::LeftBracket,
                 TokenKind::Symbol("car".to_string()),
                 vec![cons_expr.clone()],
-                TokenKind::RightBracket,
             ))
             .unwrap(),
             Value::T,
@@ -136,10 +132,8 @@ mod tests {
 
         assert_eq!(
             eval(Expr::Call(
-                TokenKind::LeftBracket,
                 TokenKind::Symbol("cdr".to_string()),
                 vec![cons_expr.clone()],
-                TokenKind::RightBracket,
             ))
             .unwrap(),
             Value::Number(0),
@@ -147,13 +141,11 @@ mod tests {
 
         assert_eq!(
             eval(Expr::Call(
-                TokenKind::LeftBracket,
                 TokenKind::Symbol("list".to_string()),
                 vec![
                     Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
                     Expr::Number(TokenKind::Number(0), 0),
                 ],
-                TokenKind::RightBracket
             ))
             .unwrap(),
             Value::Parent(Parent {

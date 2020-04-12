@@ -13,7 +13,7 @@ pub enum Expr {
         TokenKind,
     ),
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
-    Call(TokenKind, TokenKind, Vec<Expr>, TokenKind),
+    Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
     Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
     Macro(
@@ -142,8 +142,8 @@ where
                 _ => {
                     let sym_tok = self.0.next().unwrap();
                     let args = self.parse_exprs();
-                    let close = self.0.next().unwrap();
-                    Expr::Call(open, sym_tok, args, close)
+                    let _close = self.0.next().unwrap();
+                    Expr::Call(sym_tok, args)
                 }
             },
             _ => panic!("invalid expression"),
@@ -209,12 +209,7 @@ mod tests {
                 Number(0),
                 RightBracket,
             ]),
-            Expr::Call(
-                LeftBracket,
-                Symbol("test".to_string()),
-                vec![Expr::Number(Number(0), 0)],
-                RightBracket
-            )
+            Expr::Call(Symbol("test".to_string()), vec![Expr::Number(Number(0), 0)],)
         );
         assert_eq!(
             parse(vec![
