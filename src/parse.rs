@@ -5,7 +5,7 @@ pub enum Expr {
     Symbol(TokenKind, String),
     Number(TokenKind, i64),
     If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
-    Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
+    Define(TokenKind, TokenKind, Box<Expr>),
     Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
     Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
@@ -102,8 +102,8 @@ where
                     let def_tok = self.0.next().unwrap();
                     let sym_tok = self.0.next().unwrap();
                     let value = self.parse_expr();
-                    let close = self.0.next().unwrap();
-                    Expr::Define(open, def_tok, sym_tok, Box::new(value), close)
+                    let _close = self.0.next().unwrap();
+                    Expr::Define(def_tok, sym_tok, Box::new(value))
                 }
                 "quote" => {
                     let sym_tok = self.0.next().unwrap();
@@ -184,11 +184,9 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Define(
-                LeftBracket,
                 Symbol("define".to_string()),
                 Symbol("test".to_string()),
                 Box::new(Expr::Number(Number(0), 0)),
-                RightBracket
             )
         );
         assert_eq!(

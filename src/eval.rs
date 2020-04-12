@@ -71,7 +71,7 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
     match expr {
         Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
         Expr::Number(_, n) => Ok(Value::Number(n)),
-        Expr::Define(_, def, sym, value, _) => {
+        Expr::Define(def, sym, value) => {
             let def = to_sym(def)?;
             let sym = to_sym(sym)?;
             let value = eval_with_quote(*value)?;
@@ -117,7 +117,7 @@ pub fn eval_with_env(
                 macro_table,
             )?)
         }
-        Expr::Define(_, _, sym, value, _) => {
+        Expr::Define(_, sym, value) => {
             let value = eval_with_env(*value, env, macro_table)?;
             let sym = to_sym(sym)?;
             env.insert(sym, value.clone());
