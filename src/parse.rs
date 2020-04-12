@@ -9,14 +9,7 @@ pub enum Expr {
     Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, Box<Expr>),
     Lambda(TokenKind, Vec<Expr>, Vec<Expr>),
-    Macro(
-        TokenKind,
-        TokenKind,
-        TokenKind,
-        Vec<Expr>,
-        Vec<Expr>,
-        TokenKind,
-    ),
+    Macro(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>),
 }
 
 struct ParseState<I: Iterator<Item = TokenKind>>(std::iter::Peekable<I>);
@@ -81,7 +74,7 @@ where
         args
     }
 
-    fn parse_form(&mut self, open: TokenKind) -> Expr {
+    fn parse_form(&mut self, _open: TokenKind) -> Expr {
         use TokenKind::*;
         match self.0.peek() {
             Some(Symbol(ref sym)) => match &sym[..] {
@@ -127,8 +120,8 @@ where
                     let args = self.parse_symbols();
                     let _args_close = self.0.next().unwrap();
                     let body = self.parse_exprs();
-                    let close = self.0.next().unwrap();
-                    Expr::Macro(open, mac_tok, name_tok, args, body, close)
+                    let _close = self.0.next().unwrap();
+                    Expr::Macro(mac_tok, name_tok, args, body)
                 }
                 _ => {
                     let sym_tok = self.0.next().unwrap();
@@ -287,12 +280,10 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Macro(
-                LeftBracket,
                 Symbol("macro".to_string()),
                 Symbol("test".to_string()),
                 vec![],
                 vec![Expr::Number(Number(0), 0)],
-                RightBracket
             )
         );
     }

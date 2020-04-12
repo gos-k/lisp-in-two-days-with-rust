@@ -166,7 +166,7 @@ pub fn eval_with_env(
                 .collect::<Vec<String>>();
             Ok(Value::Lambda(args, exprs.to_vec()))
         }
-        Expr::Macro(_, _, name, args, exprs, _) => {
+        Expr::Macro(_, name, args, exprs) => {
             let name = to_sym(name)?;
             let args = args
                 .into_iter()
@@ -273,12 +273,10 @@ mod tests {
         assert_eq!(
             eval_with_env(
                 Expr::Macro(
-                    LeftBracket,
                     Symbol("macro".to_string()),
                     Symbol("test".to_string()),
                     vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
                     vec![Expr::Number(Number(0), 0)],
-                    RightBracket,
                 ),
                 &mut env,
                 &mut macro_table
