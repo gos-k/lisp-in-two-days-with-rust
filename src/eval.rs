@@ -153,7 +153,7 @@ pub fn eval_with_env(
             }
         }
         Expr::Quote(_, value) => eval_with_quote(*value),
-        Expr::Lambda(_, _, args, exprs, _) => {
+        Expr::Lambda(_, args, exprs) => {
             let args = args
                 .into_iter()
                 .map(|a| {
@@ -223,11 +223,9 @@ mod tests {
 
         assert_eq!(
             eval(Expr::Lambda(
-                LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
                 vec![Expr::Number(Number(0), 0)],
-                RightBracket,
             ))
             .unwrap(),
             Value::Lambda(vec!["test".to_string()], vec![Expr::Number(Number(0), 0)])
@@ -235,7 +233,6 @@ mod tests {
 
         assert_eq!(
             eval(Expr::Lambda(
-                LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
                 vec![
@@ -248,7 +245,6 @@ mod tests {
                         ],
                     )
                 ],
-                RightBracket,
             ))
             .unwrap(),
             Value::Lambda(

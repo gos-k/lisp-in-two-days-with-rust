@@ -8,7 +8,7 @@ pub enum Expr {
     Define(TokenKind, TokenKind, Box<Expr>),
     Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, Box<Expr>),
-    Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
+    Lambda(TokenKind, Vec<Expr>, Vec<Expr>),
     Macro(
         TokenKind,
         TokenKind,
@@ -117,8 +117,8 @@ where
                     let args = self.parse_symbols();
                     let _args_close = self.0.next().unwrap();
                     let body = self.parse_exprs();
-                    let close = self.0.next().unwrap();
-                    Expr::Lambda(open, lam_tok, args, body, close)
+                    let _close = self.0.next().unwrap();
+                    Expr::Lambda(lam_tok, args, body)
                 }
                 "macro" => {
                     let mac_tok = self.0.next().unwrap();
@@ -226,11 +226,9 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Lambda(
-                LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![],
                 vec![Expr::Number(Number(0), 0)],
-                RightBracket
             )
         );
 
@@ -245,11 +243,9 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Lambda(
-                LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
                 vec![Expr::Number(Number(0), 0)],
-                RightBracket
             )
         );
 
@@ -266,14 +262,12 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Lambda(
-                LeftBracket,
                 Symbol("lambda".to_string()),
                 vec![
                     Expr::Symbol(Symbol("alfa".to_string()), "alfa".to_string()),
                     Expr::Symbol(Symbol("bravo".to_string()), "bravo".to_string()),
                 ],
                 vec![Expr::Number(Number(0), 0), Expr::Number(Number(1), 1),],
-                RightBracket
             )
         );
     }
