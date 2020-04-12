@@ -109,7 +109,7 @@ pub fn eval_with_env(
             .cloned()
             .ok_or_else(|| EvalError(format!("eval undefind symbol {}", s))),
         Expr::Number(_, n) => Ok(Value::Number(n)),
-        Expr::If(_, _, cond, then, elz, _) => {
+        Expr::If(_, cond, then, elz) => {
             let result = eval_with_env(*cond, env, macro_table)?.is_truthy();
             Ok(eval_with_env(
                 if result { *then } else { *elz },
@@ -199,12 +199,10 @@ mod tests {
         assert_eq!(eval(Expr::Number(Number(0), 0)).unwrap(), Value::Number(0));
         assert_eq!(
             eval(Expr::If(
-                LeftBracket,
                 Symbol("if".to_string()),
                 Box::new(Expr::Number(Number(0), 0)),
                 Box::new(Expr::Number(Number(1), 1)),
                 Box::new(Expr::Number(Number(2), 2)),
-                RightBracket,
             ))
             .unwrap(),
             Value::Number(1)

@@ -4,14 +4,7 @@ use super::token::*;
 pub enum Expr {
     Symbol(TokenKind, String),
     Number(TokenKind, i64),
-    If(
-        TokenKind,
-        TokenKind,
-        Box<Expr>,
-        Box<Expr>,
-        Box<Expr>,
-        TokenKind,
-    ),
+    If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
     Define(TokenKind, TokenKind, TokenKind, Box<Expr>, TokenKind),
     Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
@@ -97,14 +90,12 @@ where
                     let cond = self.parse_expr();
                     let if_true = self.parse_expr();
                     let if_false = self.parse_expr();
-                    let close = self.0.next().unwrap();
+                    let _close = self.0.next().unwrap();
                     Expr::If(
-                        open,
                         if_tok,
                         Box::new(cond),
                         Box::new(if_true),
                         Box::new(if_false),
-                        close,
                     )
                 }
                 "define" => {
@@ -178,12 +169,10 @@ mod tests {
                 RightBracket,
             ]),
             Expr::If(
-                LeftBracket,
                 Symbol("if".to_string()),
                 Box::new(Expr::Number(Number(0), 0)),
                 Box::new(Expr::Number(Number(1), 1)),
                 Box::new(Expr::Number(Number(2), 2)),
-                RightBracket,
             )
         );
         assert_eq!(
