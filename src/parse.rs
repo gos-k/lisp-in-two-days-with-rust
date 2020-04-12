@@ -7,7 +7,7 @@ pub enum Expr {
     If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
     Define(TokenKind, TokenKind, Box<Expr>),
     Call(TokenKind, Vec<Expr>),
-    Quote(TokenKind, TokenKind, Box<Expr>, TokenKind),
+    Quote(TokenKind, Box<Expr>),
     Lambda(TokenKind, TokenKind, Vec<Expr>, Vec<Expr>, TokenKind),
     Macro(
         TokenKind,
@@ -108,8 +108,8 @@ where
                 "quote" => {
                     let sym_tok = self.0.next().unwrap();
                     let object = self.parse_expr();
-                    let close = self.0.next().unwrap();
-                    Expr::Quote(open, sym_tok, Box::new(object), close)
+                    let _close = self.0.next().unwrap();
+                    Expr::Quote(sym_tok, Box::new(object))
                 }
                 "lambda" => {
                     let lam_tok = self.0.next().unwrap();
@@ -206,10 +206,8 @@ mod tests {
                 RightBracket,
             ]),
             Expr::Quote(
-                LeftBracket,
                 Symbol("quote".to_string()),
                 Box::new(Expr::Number(Number(0), 0)),
-                RightBracket
             )
         );
     }

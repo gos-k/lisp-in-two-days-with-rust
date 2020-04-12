@@ -89,7 +89,7 @@ fn eval_with_quote(expr: Expr) -> EvalResult {
             args.reverse();
             Ok(cons(Value::Symbol(sym.to_string()), eval_with_list(args)))
         }
-        Expr::Quote(_, quote, value, _) => {
+        Expr::Quote(quote, value) => {
             let quote = to_sym(quote)?;
             let value = eval_with_quote(*value)?;
             Ok(cons(Value::Symbol(quote.to_string()), value))
@@ -152,7 +152,7 @@ pub fn eval_with_env(
                 _ => Err(EvalError(format!("invalid function '{}'", sym))),
             }
         }
-        Expr::Quote(_, _, value, _) => eval_with_quote(*value),
+        Expr::Quote(_, value) => eval_with_quote(*value),
         Expr::Lambda(_, _, args, exprs, _) => {
             let args = args
                 .into_iter()
@@ -209,10 +209,8 @@ mod tests {
         );
         assert_eq!(
             eval(Expr::Quote(
-                LeftBracket,
                 Symbol("quote".to_string()),
                 Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
-                RightBracket,
             ))
             .unwrap(),
             Value::Symbol("test".to_string())
