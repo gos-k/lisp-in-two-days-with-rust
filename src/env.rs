@@ -144,6 +144,25 @@ mod tests {
         assert_eq!(
             eval(Expr::Call(
                 TokenKind::LeftBracket,
+                TokenKind::Symbol("cdr".to_string()),
+                vec![Expr::Call(
+                    TokenKind::LeftBracket,
+                    TokenKind::Symbol("cons".to_string()),
+                    vec![
+                        Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
+                        Expr::Number(TokenKind::Number(0), 0),
+                    ],
+                    TokenKind::RightBracket,
+                ),],
+                TokenKind::RightBracket,
+            ))
+            .unwrap(),
+            Value::Number(0),
+        );
+
+        assert_eq!(
+            eval(Expr::Call(
+                TokenKind::LeftBracket,
                 TokenKind::Symbol("list".to_string()),
                 vec![
                     Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
