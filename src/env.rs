@@ -88,6 +88,16 @@ mod tests {
 
     #[test]
     fn test_env() {
+        let cons_expr = Expr::Call(
+            TokenKind::LeftBracket,
+            TokenKind::Symbol("cons".to_string()),
+            vec![
+                Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
+                Expr::Number(TokenKind::Number(0), 0),
+            ],
+            TokenKind::RightBracket,
+        );
+
         assert_eq!(
             eval(Expr::Symbol(
                 TokenKind::Symbol("t".to_string()),
@@ -106,16 +116,7 @@ mod tests {
         );
 
         assert_eq!(
-            eval(Expr::Call(
-                TokenKind::LeftBracket,
-                TokenKind::Symbol("cons".to_string()),
-                vec![
-                    Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
-                    Expr::Number(TokenKind::Number(0), 0),
-                ],
-                TokenKind::RightBracket
-            ))
-            .unwrap(),
+            eval(cons_expr.clone()).unwrap(),
             Value::Parent(Parent {
                 lhs: Box::new(Value::T),
                 rhs: Box::new(Value::Number(0)),
@@ -126,15 +127,7 @@ mod tests {
             eval(Expr::Call(
                 TokenKind::LeftBracket,
                 TokenKind::Symbol("car".to_string()),
-                vec![Expr::Call(
-                    TokenKind::LeftBracket,
-                    TokenKind::Symbol("cons".to_string()),
-                    vec![
-                        Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
-                        Expr::Number(TokenKind::Number(0), 0),
-                    ],
-                    TokenKind::RightBracket,
-                ),],
+                vec![cons_expr.clone()],
                 TokenKind::RightBracket,
             ))
             .unwrap(),
@@ -145,15 +138,7 @@ mod tests {
             eval(Expr::Call(
                 TokenKind::LeftBracket,
                 TokenKind::Symbol("cdr".to_string()),
-                vec![Expr::Call(
-                    TokenKind::LeftBracket,
-                    TokenKind::Symbol("cons".to_string()),
-                    vec![
-                        Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
-                        Expr::Number(TokenKind::Number(0), 0),
-                    ],
-                    TokenKind::RightBracket,
-                ),],
+                vec![cons_expr.clone()],
                 TokenKind::RightBracket,
             ))
             .unwrap(),
