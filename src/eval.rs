@@ -4,7 +4,7 @@ use super::parse::*;
 use super::token::*;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Parent {
+pub struct Pair {
     pub lhs: Box<Value>,
     pub rhs: Box<Value>,
 }
@@ -15,7 +15,7 @@ pub enum Value {
     Symbol(String),
     Callable(Callable),
     Lambda(Vec<String>, Vec<Expr>),
-    Parent(Parent),
+    Pair(Pair),
     T,
     Nil,
 }
@@ -44,7 +44,7 @@ pub struct EvalError(pub String);
 pub type EvalResult = Result<Value, EvalError>;
 
 pub fn cons(lhs: Value, rhs: Value) -> Value {
-    Value::Parent(Parent {
+    Value::Pair(Pair {
         lhs: Box::new(lhs),
         rhs: Box::new(rhs),
     })

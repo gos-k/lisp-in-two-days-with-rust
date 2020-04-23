@@ -52,14 +52,14 @@ pub fn make_global_env() -> HashMap<String, Value> {
     env.insert(
         "car".into(),
         Callable(|values| match &values[0] {
-            Parent(parent) => Ok(*parent.lhs.clone()),
+            Pair(pair) => Ok(*pair.lhs.clone()),
             other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
     env.insert(
         "cdr".into(),
         Callable(|values| match &values[0] {
-            Parent(parent) => Ok(*parent.rhs.clone()),
+            Pair(pair) => Ok(*pair.rhs.clone()),
             other => Err(EvalError(format!("car {:?}", other))),
         }),
     );
@@ -115,7 +115,7 @@ mod tests {
 
         assert_eq!(
             eval(cons_expr.clone()).unwrap(),
-            Value::Parent(Parent {
+            Value::Pair(Pair {
                 lhs: Box::new(Value::T),
                 rhs: Box::new(Value::Number(0)),
             }),
@@ -148,9 +148,9 @@ mod tests {
                 ],
             ))
             .unwrap(),
-            Value::Parent(Parent {
+            Value::Pair(Pair {
                 lhs: Box::new(Value::T),
-                rhs: Box::new(Value::Parent(Parent {
+                rhs: Box::new(Value::Pair(Pair {
                     lhs: Box::new(Value::Number(0)),
                     rhs: Box::new(Value::Nil),
                 })),
