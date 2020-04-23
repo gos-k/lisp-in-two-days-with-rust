@@ -4,18 +4,12 @@ use super::parse::*;
 use super::token::*;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Pair {
-    pub lhs: Box<Value>,
-    pub rhs: Box<Value>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Number(i64),
     Symbol(String),
     Callable(Callable),
     Lambda(Vec<String>, Vec<Expr>),
-    Pair(Pair),
+    Pair(Box<Value>, Box<Value>),
     T,
     Nil,
 }
@@ -44,10 +38,7 @@ pub struct EvalError(pub String);
 pub type EvalResult = Result<Value, EvalError>;
 
 pub fn cons(lhs: Value, rhs: Value) -> Value {
-    Value::Pair(Pair {
-        lhs: Box::new(lhs),
-        rhs: Box::new(rhs),
-    })
+    Value::Pair(Box::new(lhs), Box::new(rhs))
 }
 
 fn to_sym(token: TokenKind) -> Result<String, EvalError> {

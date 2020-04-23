@@ -6,7 +6,7 @@ fn symbol_expression(result: Value, paren: bool) -> String {
     match result {
         Number(number) => number.to_string(),
         Symbol(symbol) => symbol.to_string(),
-        Pair(super::eval::Pair { lhs, rhs }) => {
+        Pair(lhs, rhs) => {
             let lhs = symbol_expression(*lhs, true);
             match *rhs {
                 Nil => {
@@ -16,7 +16,7 @@ fn symbol_expression(result: Value, paren: bool) -> String {
                         format!("{}", lhs)
                     }
                 }
-                Pair(_) => {
+                Pair(_, _) => {
                     let rhs = symbol_expression(*rhs, false);
                     if paren {
                         format!("({} {})", lhs, rhs)
