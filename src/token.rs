@@ -1,3 +1,14 @@
+extern crate nom;
+
+use nom::{
+    branch::alt,
+    character::complete::{alpha1, char, digit1, multispace0},
+    combinator::map,
+    multi::many0,
+    sequence::delimited,
+    IResult,
+};
+
 #[derive(Debug)]
 enum TokeniseState {
     Start,
@@ -16,71 +27,67 @@ pub enum TokenKind {
     Symbol(String),
 }
 
-pub fn tokenise(source: &str) -> Vec<TokenKind> {
-    use TokeniseState::*;
+fn token_paren(input: &str) -> IResult<&str, Vec<TokenKind>> {
+    use TokenKind::*;
+    map(
+        delimited(
+            multispace0,
+            delimited(char('('), tokens, char(')')),
+            multispace0,
+        ),
+        |mut tk| {
+            let mut result = vec![LeftBracket];
+            result.append(&mut tk);
+            result.push(RightBracket);
+            result
+        },
+    )(input)
+}
 
-    let mut result = Vec::new();
-    let mut start = 0;
-    loop {
-        let mut state = Start;
-        let mut end = start;
-        for c in source[start..].chars() {
-            let next = match state {
-                Start => match c {
-                    '(' => Some(LParen),
-                    ')' => Some(RParen),
-                    '0'..='9' => Some(Number),
-                    'a'..='z' | '+' | '*' => Some(TokeniseState::Symbol),
-                    c if c.is_whitespace() => Some(WhiteSpace),
-                    _ => None,
-                },
-                LParen | RParen => None,
-                Number => match c {
-                    '0'..='9' => Some(Number),
-                    _ => None,
-                },
-                TokeniseState::Symbol => match c {
-                    'a'..='z' | '+' | '*' | '0'..='9' => Some(TokeniseState::Symbol),
-                    _ => None,
-                },
-                WhiteSpace => {
-                    if c.is_whitespace() {
-                        Some(WhiteSpace)
-                    } else {
-                        None
-                    }
-                }
-            };
+fn token_name(input: &str) -> IResult<&str, Vec<TokenKind>> {
+    use TokenKind::*;
+    alt((
+        map(delimited(multispace0, digit1, multispace0), |n: &str| {
+            vec![Number(n.parse().unwrap())]
+        }),
+        map(delimited(multispace0, alpha1, multispace0), |s: &str| {
+            vec![Symbol(s.to_string())]
+        }),
+        token_paren,
+    ))(input)
+}
 
-            if let Some(next_state) = next {
-                state = next_state;
-                end += c.len_utf8();
-            } else {
-                break;
-            }
-        }
+fn tokens(input: &str) -> IResult<&str, Vec<TokenKind>> {
+    let (s, output) = many0(token_name)(input)?;
+    Ok((s, output.into_iter().flatten().collect::<Vec<TokenKind>>()))
+}
 
-        let token_str = &source[start..end];
-        start = end;
-
-        let kind = match state {
-            Start => break,
-            LParen => TokenKind::LeftBracket,
-            RParen => TokenKind::RightBracket,
-            Number => TokenKind::Number(token_str.parse().unwrap()),
-            Symbol => TokenKind::Symbol(token_str.into()),
-            WhiteSpace => continue,
-        };
-
-        result.push(kind);
-    }
-
-    return result;
+pub fn tokenise(input: &str) -> Vec<TokenKind> {
+    let (_, output) = token_name(input).unwrap();
+    output
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_token() {
+        use TokenKind::*;
+        assert_eq!(token_name("123"), Ok(("", vec![Number(123)])));
+        assert_eq!(token_name("abc"), Ok(("", vec![Symbol("abc".to_string())])));
+        assert_eq!(
+            token_name("(123)"),
+            Ok(("", vec![LeftBracket, Number(123), RightBracket]))
+        );
+        assert_eq!(
+            token_name("(abc)"),
+            Ok((
+                "",
+                vec![LeftBracket, Symbol("abc".to_string()), RightBracket]
+            ))
+        );
+    }
 
     #[test]
     fn test_tokenise() {
