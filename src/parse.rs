@@ -4,7 +4,7 @@ use super::token::*;
 pub enum Expr {
     Symbol(String),
     Number(i64),
-    If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
+    If(Box<Expr>, Box<Expr>, Box<Expr>),
     Define(TokenKind, TokenKind, Box<Expr>),
     Call(TokenKind, Vec<Expr>),
     Quote(TokenKind, Box<Expr>),
@@ -80,17 +80,12 @@ where
         match self.0.peek() {
             Some(Symbol(ref sym)) => match &sym[..] {
                 "if" => {
-                    let if_tok = self.0.next().unwrap();
+                    let _if_tok = self.0.next();
                     let cond = self.parse_expr();
                     let if_true = self.parse_expr();
                     let if_false = self.parse_expr();
-                    let _close = self.0.next().unwrap();
-                    Expr::If(
-                        if_tok,
-                        Box::new(cond),
-                        Box::new(if_true),
-                        Box::new(if_false),
-                    )
+                    let _close = self.0.next();
+                    Expr::If(Box::new(cond), Box::new(if_true), Box::new(if_false))
                 }
                 "define" => {
                     let def_tok = self.0.next().unwrap();
@@ -163,7 +158,6 @@ mod tests {
                 RightBracket,
             ]),
             Expr::If(
-                Symbol("if".to_string()),
                 Box::new(Expr::Number(0)),
                 Box::new(Expr::Number(1)),
                 Box::new(Expr::Number(2)),
