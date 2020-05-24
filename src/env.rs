@@ -91,27 +91,13 @@ mod tests {
         let cons_expr = Expr::Call(
             TokenKind::Symbol("cons".to_string()),
             vec![
-                Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
+                Expr::Symbol("t".to_string()),
                 Expr::Number(TokenKind::Number(0), 0),
             ],
         );
 
-        assert_eq!(
-            eval(Expr::Symbol(
-                TokenKind::Symbol("t".to_string()),
-                "t".to_string()
-            ))
-            .unwrap(),
-            Value::T
-        );
-        assert_eq!(
-            eval(Expr::Symbol(
-                TokenKind::Symbol("nil".to_string()),
-                "nil".to_string()
-            ))
-            .unwrap(),
-            Value::Nil
-        );
+        assert_eq!(eval(Expr::Symbol("t".to_string())).unwrap(), Value::T);
+        assert_eq!(eval(Expr::Symbol("nil".to_string())).unwrap(), Value::Nil);
 
         assert_eq!(
             eval(cons_expr.clone()).unwrap(),
@@ -140,7 +126,7 @@ mod tests {
             eval(Expr::Call(
                 TokenKind::Symbol("list".to_string()),
                 vec![
-                    Expr::Symbol(TokenKind::Symbol("t".to_string()), "t".to_string()),
+                    Expr::Symbol("t".to_string()),
                     Expr::Number(TokenKind::Number(0), 0),
                 ],
             ))

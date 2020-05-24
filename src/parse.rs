@@ -2,7 +2,7 @@ use super::token::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
-    Symbol(TokenKind, String),
+    Symbol(String),
     Number(TokenKind, i64),
     If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
     Define(TokenKind, TokenKind, Box<Expr>),
@@ -31,7 +31,7 @@ where
             Number(n) => Expr::Number(token_kind, n),
             Symbol(ref s) => {
                 let sym = s.clone();
-                Expr::Symbol(token_kind, sym)
+                Expr::Symbol(sym)
             }
         }
     }
@@ -57,7 +57,7 @@ where
         match token_kind {
             TokenKind::Symbol(ref s) => {
                 let sym = s.clone();
-                Expr::Symbol(token_kind, sym)
+                Expr::Symbol(sym)
             }
             _ => panic!("invalid expression"),
         }
@@ -150,7 +150,7 @@ mod tests {
 
         assert_eq!(
             parse(vec![Symbol("test".to_string())]),
-            Expr::Symbol(Symbol("test".to_string()), "test".to_string())
+            Expr::Symbol("test".to_string())
         );
         assert_eq!(parse(vec![Number(0)]), Expr::Number(Number(0), 0));
         assert_eq!(
@@ -238,7 +238,7 @@ mod tests {
             ]),
             Expr::Lambda(
                 Symbol("lambda".to_string()),
-                vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
+                vec![Expr::Symbol("arg".to_string())],
                 vec![Expr::Number(Number(0), 0)],
             )
         );
@@ -258,8 +258,8 @@ mod tests {
             Expr::Lambda(
                 Symbol("lambda".to_string()),
                 vec![
-                    Expr::Symbol(Symbol("alfa".to_string()), "alfa".to_string()),
-                    Expr::Symbol(Symbol("bravo".to_string()), "bravo".to_string()),
+                    Expr::Symbol("alfa".to_string()),
+                    Expr::Symbol("bravo".to_string()),
                 ],
                 vec![Expr::Number(Number(0), 0), Expr::Number(Number(1), 1),],
             )

@@ -60,7 +60,7 @@ fn eval_with_list(mut values: Vec<Value>) -> Value {
 
 fn eval_with_quote(expr: Expr) -> EvalResult {
     match expr {
-        Expr::Symbol(_, s) => Ok(Value::Symbol(s)),
+        Expr::Symbol(s) => Ok(Value::Symbol(s)),
         Expr::Number(_, n) => Ok(Value::Number(n)),
         Expr::Define(def, sym, value) => {
             let def = to_sym(def)?;
@@ -95,7 +95,7 @@ pub fn eval_with_env(
     macro_table: &mut HashMap<String, Value>,
 ) -> EvalResult {
     match expr {
-        Expr::Symbol(_, s) => env
+        Expr::Symbol(s) => env
             .get(&s)
             .cloned()
             .ok_or_else(|| EvalError(format!("eval undefind symbol {}", s))),
@@ -148,7 +148,7 @@ pub fn eval_with_env(
             let args = args
                 .into_iter()
                 .map(|a| {
-                    if let Expr::Symbol(_, sym) = a {
+                    if let Expr::Symbol(sym) = a {
                         sym
                     } else {
                         panic!("lambda eval");
@@ -162,7 +162,7 @@ pub fn eval_with_env(
             let args = args
                 .into_iter()
                 .map(|a| {
-                    if let Expr::Symbol(_, sym) = a {
+                    if let Expr::Symbol(sym) = a {
                         sym
                     } else {
                         panic!("lambda eval");
@@ -201,7 +201,7 @@ mod tests {
         assert_eq!(
             eval(Expr::Quote(
                 Symbol("quote".to_string()),
-                Box::new(Expr::Symbol(Symbol("test".to_string()), "test".to_string())),
+                Box::new(Expr::Symbol("test".to_string())),
             ))
             .unwrap(),
             Value::Symbol("test".to_string())
@@ -215,7 +215,7 @@ mod tests {
         assert_eq!(
             eval(Expr::Lambda(
                 Symbol("lambda".to_string()),
-                vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
+                vec![Expr::Symbol("test".to_string())],
                 vec![Expr::Number(Number(0), 0)],
             ))
             .unwrap(),
@@ -225,14 +225,14 @@ mod tests {
         assert_eq!(
             eval(Expr::Lambda(
                 Symbol("lambda".to_string()),
-                vec![Expr::Symbol(Symbol("test".to_string()), "test".to_string())],
+                vec![Expr::Symbol("test".to_string())],
                 vec![
                     Expr::Number(Number(0), 0),
                     Expr::Call(
                         Symbol("*".to_string()),
                         vec![
-                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
-                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                            Expr::Symbol("test".to_string()),
+                            Expr::Symbol("test".to_string()),
                         ],
                     )
                 ],
@@ -245,8 +245,8 @@ mod tests {
                     Expr::Call(
                         Symbol("*".to_string()),
                         vec![
-                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
-                            Expr::Symbol(Symbol("test".to_string()), "test".to_string()),
+                            Expr::Symbol("test".to_string()),
+                            Expr::Symbol("test".to_string()),
                         ],
                     )
                 ]
@@ -266,7 +266,7 @@ mod tests {
                 Expr::Macro(
                     Symbol("macro".to_string()),
                     Symbol("test".to_string()),
-                    vec![Expr::Symbol(Symbol("arg".to_string()), "arg".to_string())],
+                    vec![Expr::Symbol("arg".to_string())],
                     vec![Expr::Number(Number(0), 0)],
                 ),
                 &mut env,
