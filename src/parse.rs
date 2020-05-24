@@ -19,19 +19,20 @@ where
     I: Iterator<Item = TokenKind>,
 {
     fn parse_expr(&mut self) -> Expr {
-        if let Some(token_kind) = self.0.next() {
-            use TokenKind::*;
-            match token_kind {
-                LeftBracket => self.parse_form(token_kind),
-                RightBracket => panic!("unexpected token!"),
-                Number(n) => Expr::Number(token_kind, n),
-                Symbol(ref s) => {
-                    let sym = s.clone();
-                    Expr::Symbol(token_kind, sym)
-                }
+        let token_kind = self
+            .0
+            .next()
+            .ok_or("invalid expression".to_owned())
+            .unwrap();
+        use TokenKind::*;
+        match token_kind {
+            LeftBracket => self.parse_form(token_kind),
+            RightBracket => panic!("unexpected token!"),
+            Number(n) => Expr::Number(token_kind, n),
+            Symbol(ref s) => {
+                let sym = s.clone();
+                Expr::Symbol(token_kind, sym)
             }
-        } else {
-            panic!("invalid expression")
         }
     }
 
@@ -48,17 +49,17 @@ where
     }
 
     fn parse_symbol(&mut self) -> Expr {
-        if let Some(token_kind) = self.0.next() {
-            use TokenKind::*;
-            match token_kind {
-                Symbol(ref s) => {
-                    let sym = s.clone();
-                    Expr::Symbol(token_kind, sym)
-                }
-                _ => panic!("invalid expression"),
+        let token_kind = self
+            .0
+            .next()
+            .ok_or("invalid expression".to_owned())
+            .unwrap();
+        match token_kind {
+            TokenKind::Symbol(ref s) => {
+                let sym = s.clone();
+                Expr::Symbol(token_kind, sym)
             }
-        } else {
-            panic!("invalid expression")
+            _ => panic!("invalid expression"),
         }
     }
 
