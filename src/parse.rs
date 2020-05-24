@@ -3,7 +3,7 @@ use super::token::*;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     Symbol(String),
-    Number(TokenKind, i64),
+    Number(i64),
     If(TokenKind, Box<Expr>, Box<Expr>, Box<Expr>),
     Define(TokenKind, TokenKind, Box<Expr>),
     Call(TokenKind, Vec<Expr>),
@@ -28,7 +28,7 @@ where
         match token_kind {
             LeftBracket => self.parse_form(token_kind),
             RightBracket => panic!("unexpected token!"),
-            Number(n) => Expr::Number(token_kind, n),
+            Number(n) => Expr::Number(n),
             Symbol(ref s) => {
                 let sym = s.clone();
                 Expr::Symbol(sym)
@@ -152,7 +152,7 @@ mod tests {
             parse(vec![Symbol("test".to_string())]),
             Expr::Symbol("test".to_string())
         );
-        assert_eq!(parse(vec![Number(0)]), Expr::Number(Number(0), 0));
+        assert_eq!(parse(vec![Number(0)]), Expr::Number(0));
         assert_eq!(
             parse(vec![
                 LeftBracket,
@@ -164,9 +164,9 @@ mod tests {
             ]),
             Expr::If(
                 Symbol("if".to_string()),
-                Box::new(Expr::Number(Number(0), 0)),
-                Box::new(Expr::Number(Number(1), 1)),
-                Box::new(Expr::Number(Number(2), 2)),
+                Box::new(Expr::Number(0)),
+                Box::new(Expr::Number(1)),
+                Box::new(Expr::Number(2)),
             )
         );
         assert_eq!(
@@ -180,7 +180,7 @@ mod tests {
             Expr::Define(
                 Symbol("define".to_string()),
                 Symbol("test".to_string()),
-                Box::new(Expr::Number(Number(0), 0)),
+                Box::new(Expr::Number(0)),
             )
         );
         assert_eq!(
@@ -190,7 +190,7 @@ mod tests {
                 Number(0),
                 RightBracket,
             ]),
-            Expr::Call(Symbol("test".to_string()), vec![Expr::Number(Number(0), 0)],)
+            Expr::Call(Symbol("test".to_string()), vec![Expr::Number(0)],)
         );
         assert_eq!(
             parse(vec![
@@ -199,10 +199,7 @@ mod tests {
                 Number(0),
                 RightBracket,
             ]),
-            Expr::Quote(
-                Symbol("quote".to_string()),
-                Box::new(Expr::Number(Number(0), 0)),
-            )
+            Expr::Quote(Symbol("quote".to_string()), Box::new(Expr::Number(0)),)
         );
     }
 
@@ -219,11 +216,7 @@ mod tests {
                 Number(0),
                 RightBracket,
             ]),
-            Expr::Lambda(
-                Symbol("lambda".to_string()),
-                vec![],
-                vec![Expr::Number(Number(0), 0)],
-            )
+            Expr::Lambda(Symbol("lambda".to_string()), vec![], vec![Expr::Number(0)],)
         );
 
         assert_eq!(
@@ -239,7 +232,7 @@ mod tests {
             Expr::Lambda(
                 Symbol("lambda".to_string()),
                 vec![Expr::Symbol("arg".to_string())],
-                vec![Expr::Number(Number(0), 0)],
+                vec![Expr::Number(0)],
             )
         );
 
@@ -261,7 +254,7 @@ mod tests {
                     Expr::Symbol("alfa".to_string()),
                     Expr::Symbol("bravo".to_string()),
                 ],
-                vec![Expr::Number(Number(0), 0), Expr::Number(Number(1), 1),],
+                vec![Expr::Number(0), Expr::Number(1),],
             )
         );
     }
@@ -284,7 +277,7 @@ mod tests {
                 Symbol("macro".to_string()),
                 Symbol("test".to_string()),
                 vec![],
-                vec![Expr::Number(Number(0), 0)],
+                vec![Expr::Number(0)],
             )
         );
     }

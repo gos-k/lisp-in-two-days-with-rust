@@ -90,10 +90,7 @@ mod tests {
     fn test_env() {
         let cons_expr = Expr::Call(
             TokenKind::Symbol("cons".to_string()),
-            vec![
-                Expr::Symbol("t".to_string()),
-                Expr::Number(TokenKind::Number(0), 0),
-            ],
+            vec![Expr::Symbol("t".to_string()), Expr::Number(0)],
         );
 
         assert_eq!(eval(Expr::Symbol("t".to_string())).unwrap(), Value::T);
@@ -125,10 +122,7 @@ mod tests {
         assert_eq!(
             eval(Expr::Call(
                 TokenKind::Symbol("list".to_string()),
-                vec![
-                    Expr::Symbol("t".to_string()),
-                    Expr::Number(TokenKind::Number(0), 0),
-                ],
+                vec![Expr::Symbol("t".to_string()), Expr::Number(0),],
             ))
             .unwrap(),
             Value::Pair(
